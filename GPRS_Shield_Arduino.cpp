@@ -384,11 +384,10 @@ bool GPRS::isCallActive(char *number)
 
 bool GPRS::getDateTime(char *buffer)
 {
-  //AT+CCLK?
-  //+CCLK: "14/11/13,21:14:41+04"
-  //
+  //AT+CCLK?			    --> 8 + CRLF = 10
+  //+CCLK: "14/11/13,21:14:41+04"   --> 29+ CRLF = 31
+  //				    --> CRLF     =  2
   //OK
-  
     int i = 0;
     char gprsBuffer[46];
     char *p,*s;
@@ -407,9 +406,9 @@ bool GPRS::getDateTime(char *buffer)
             buffer[i] = '\0';            
         }
         //We are going to flush serial data until OK is recieved
-        return sim900_wait_for_resp("OK", CMD);
+        return sim900_wait_for_resp("OK\r\n", CMD);
     }  
-    return false;  
+    return false;
 }
 
 //Here is where we ask for APN configuration, with F() so we can save MEMORY
