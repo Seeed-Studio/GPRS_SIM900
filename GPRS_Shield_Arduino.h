@@ -246,9 +246,10 @@ public:
      *  @param ip long int ip address, ex. 0x11223344
      *  @returns true if successful
      */
-    bool gethostbyname(const char* host, uint32_t* ip); 
+    //NOT USED bool gethostbyname(const char* host, uint32_t* ip); 
     
     char* getIPAddress();
+    unsigned long getIPnumber();
     
 private:
     bool checkSIMStatus(void);
@@ -256,6 +257,6 @@ private:
     SoftwareSerial gprsSerial;
     static GPRS* inst;
     uint32_t _ip;
-    char ip_string[20];
+    char ip_string[16]; //XXX.YYY.ZZZ.WWW + \0
 };
 #endif
