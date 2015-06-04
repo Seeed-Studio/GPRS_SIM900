@@ -525,7 +525,7 @@ bool GPRS::connect(Protocol ptl,const char * host, int port, int timeout)
     
 
     //sim900_send_cmd(cmd);
-    sim900_read_buffer(resp,96,timeout);
+    sim900_read_buffer(resp,96,timeout, timeout * 1000);
 //Serial.print("Connect resp: "); Serial.println(resp);    
     if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
         return true;
@@ -552,7 +552,7 @@ bool GPRS::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashSt
     sim900_send_cmd(port);
     sim900_send_cmd(F("\r\n"));
 //Serial.print("Connect: "); Serial.println(cmd);
-    sim900_read_buffer(resp, 96, timeout);
+    sim900_read_buffer(resp, 96, timeout, timeout * 1000);
 //Serial.print("Connect resp: "); Serial.println(resp);    
     if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
         return true;
