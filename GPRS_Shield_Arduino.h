@@ -193,10 +193,11 @@ public:
      *  @param host host (can be either an ip address or a name. If a name is provided, a dns request will be established)
      *  @param port port
      *  @param timeout wait seconds till connected
+     *  @param chartimeout wait milliseconds between characters from GPRS module
      *  @returns true if successful
      */
-    bool connect(Protocol ptl, const char * host, int port, int timeout = 2 * DEFAULT_TIMEOUT);
-	bool connect(Protocol ptl, const __FlashStringHelper *host, const __FlashStringHelper *port, int timeout = 2 * DEFAULT_TIMEOUT);
+    bool connect(Protocol ptl, const char * host, int port, int timeout = 2 * DEFAULT_TIMEOUT, int chartimeout = 2 * DEFAULT_INTERCHAR_TIMEOUT);
+	bool connect(Protocol ptl, const __FlashStringHelper *host, const __FlashStringHelper *port, int timeout = 2 * DEFAULT_TIMEOUT, int chartimeout = 2 * DEFAULT_INTERCHAR_TIMEOUT);
 
     /** Check if a tcp link is active
      *  @returns true if successful
