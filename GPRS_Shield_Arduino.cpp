@@ -495,7 +495,7 @@ void GPRS::disconnect()
     sim900_send_cmd("AT+CIPSHUT\r\n");
 }
 
-bool GPRS::connect(Protocol ptl,const char * host, int port, int timeout)
+bool GPRS::connect(Protocol ptl,const char * host, int port, int timeout, int chartimeout)
 {
     //char cmd[64];
 	char num[4];
@@ -525,7 +525,7 @@ bool GPRS::connect(Protocol ptl,const char * host, int port, int timeout)
     
 
     //sim900_send_cmd(cmd);
-    sim900_read_buffer(resp,96,timeout);
+    sim900_read_buffer(resp, 96, timeout, chartimeout);
 //Serial.print("Connect resp: "); Serial.println(resp);    
     if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
         return true;
@@ -534,7 +534,7 @@ bool GPRS::connect(Protocol ptl,const char * host, int port, int timeout)
 }
 
 //Overload with F() macro to SAVE memory
-bool GPRS::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashStringHelper *port, int timeout)
+bool GPRS::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashStringHelper *port, int timeout, int chartimeout)
 {
     //char cmd[64];
     char resp[96];
@@ -552,7 +552,7 @@ bool GPRS::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashSt
     sim900_send_cmd(port);
     sim900_send_cmd(F("\r\n"));
 //Serial.print("Connect: "); Serial.println(cmd);
-    sim900_read_buffer(resp, 96, timeout);
+    sim900_read_buffer(resp, 96, timeout, chartimeout);
 //Serial.print("Connect resp: "); Serial.println(resp);    
     if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
         return true;
