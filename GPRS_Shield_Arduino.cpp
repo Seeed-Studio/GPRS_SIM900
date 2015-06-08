@@ -448,11 +448,17 @@ bool GPRS::join(const __FlashStringHelper *apn, const __FlashStringHelper *userN
     //snprintf(cmd,sizeof(cmd),"AT+CSTT=\"%s\",\"%s\",\"%s\"\r\n",_apn,_userName,_passWord);
     //sim900_check_with_cmd(cmd, "OK\r\n", DEFAULT_TIMEOUT,CMD);
     sim900_send_cmd("AT+CSTT=\"");
-    sim900_send_cmd(apn);
+    if (apn) {
+      sim900_send_cmd(apn);
+    }
     sim900_send_cmd("\",\"");
-    sim900_send_cmd(userName);
+    if (userName) {
+      sim900_send_cmd(userName);
+    }
     sim900_send_cmd("\",\"");
-    sim900_send_cmd(passWord);
+    if (passWord) {
+      sim900_send_cmd(passWord);
+    }
     sim900_check_with_cmd("\"\r\n", "OK\r\n", CMD);
     
 
