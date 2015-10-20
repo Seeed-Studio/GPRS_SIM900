@@ -646,9 +646,9 @@ void GPRS::listen(void)
 	gprsSerial.listen();
 }
 
-bool GPRS::isListen(void)
+bool GPRS::isListening(void)
 {
-	return gprsSerial.isListen();
+	return gprsSerial.isListening();
 }
 
 uint32_t GPRS::str_to_ip(const char* str)
