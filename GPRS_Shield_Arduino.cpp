@@ -641,6 +641,16 @@ int GPRS::recv(char* buf, int len)
     return strlen(buf);
 }
 
+void GPRS::listen(void)
+{
+	gprsSerial.listen();
+}
+
+bool GPRS::isListening(void)
+{
+	return gprsSerial.isListening();
+}
+
 uint32_t GPRS::str_to_ip(const char* str)
 {
     uint32_t ip = 0;

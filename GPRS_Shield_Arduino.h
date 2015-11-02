@@ -242,6 +242,16 @@ public:
      */
     int recv(char* buf, int len);
 
+    /** Enables the selected software serial port to listen
+     *  @returns none
+     */
+    void listen(void);
+	
+    /** Tests to see if requested software serial port is actively listening.
+     *  @returns none
+     */
+    bool isListening(void);
+
     /** convert the host to ip
      *  @param host host ip string, ex. 10.11.12.13
      *  @param ip long int ip address, ex. 0x11223344
