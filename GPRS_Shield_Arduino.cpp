@@ -435,6 +435,50 @@ bool GPRS::getDateTime(char *buffer)
     return false;
 }
 
+bool GPRS::sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response)
+{
+	//AT+CUSD=1,"{command}"			-->
+	//OK
+	//
+	//+CUSD:1,"{response}",{int}	--> Unsolicited Response
+
+	byte i = 0;
+    char gprsBuffer[200];
+    char *p,*s;
+    sim900_clean_buffer(response, sizeof(response));
+	
+    sim900_send_cmd("AT+CUSD=1,\"");
+    sim900_send_cmd(ussdCommand);
+    sim900_send_cmd("\"\r");
+	if(!sim900_wait_for_resp("OK\r\n", CMD))
+		return false;
+    sim900_clean_buffer(gprsBuffer,200);
+    sim900_read_buffer(gprsBuffer,200,DEFAULT_TIMEOUT);
+    if(NULL != ( s = strstr(gprsBuffer,"+CUSD: "))) {
+        *resultcode = *(s+7);
+		resultcode[1] = '\0';
+		if(!('0' <= *resultcode && *resultcode <= '2'))
+			return false;
+		s = strstr(s,"\"");
+        s = s + 1;  //We are in the first phone number character
+        p = strstr(s,"\""); //p is last character """
+        if (NULL != s) {
+            i = 0;
+            while (s < p) {
+              response[i++] = *(s++);
+            }
+            response[i] = '\0';            
+        }
+		return true;
+	}
+	return false;
+}
+
+bool GPRS::cancelUSSDSession(void)
+{
+    return sim900_check_with_cmd("AT+CUSD=2\r\n","OK\r\n",CMD);
+}
+
 //Here is where we ask for APN configuration, with F() so we can save MEMORY
 bool GPRS::join(const __FlashStringHelper *apn, const __FlashStringHelper *userName, const __FlashStringHelper *passWord)
 {

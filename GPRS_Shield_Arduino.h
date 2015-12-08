@@ -172,6 +172,24 @@ public:
      */        
     bool getDateTime(char *buffer);
     
+    /** Send USSD Command Synchronously (Blocking call until unsolicited response is received)
+     *  @param
+	 *		*ussdCommand string command UUSD, ex: *123#
+	 *		*resultCode	char Result Code, see AT+CUSD command
+	 *		*response	string response
+	 *		*cellBroadcast	int Cell Broadcast Data Coding Scheme
+     *  @returns
+     *      true on success
+     *      false on error
+     */     
+	bool sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response);
+
+    /** Cancel USSD Session
+     *  @returns
+     *      true on success cancel active session
+     *      false on error or because no active session
+     */
+	bool cancelUSSDSession(void);
 
 //////////////////////////////////////////////////////
 /// GPRS
