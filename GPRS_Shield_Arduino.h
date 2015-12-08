@@ -157,7 +157,19 @@ public:
      */
     bool disableCLIPring(void);
 	
-    /** Check if there is a call active and get the phone number in that case
+	/** Get Subscriber Number (your number) using AT+CNUM command, but if nothing returns, then
+	 *  you need to command this to your SIM900. (See AT+CPBS, AT+CPBW)
+	 *	AT+CPBS="ON"
+	 *	AT+CPBW=1,"+{Your Number}",145
+	 *	AT+CPBS="SM"
+	 *  @param
+	 *	@return
+	 *		true on success
+	 *		false on error
+	 */
+	bool getSubscriberNumber(char *number);
+    
+	/** Check if there is a call active and get the phone number in that case
      *  @returns
      *      true on success
      *      false on error

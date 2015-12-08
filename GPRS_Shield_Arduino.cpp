@@ -71,8 +71,7 @@ void GPRS::powerUpDown(uint8_t pin)
   digitalWrite(pin,LOW);
   delay(3000);
 }
-    
-    
+  
 bool GPRS::checkSIMStatus(void)
 {
     char gprsBuffer[32];
@@ -93,8 +92,6 @@ bool GPRS::checkSIMStatus(void)
     return true;
 }
 
-
-
 bool GPRS::sendSMS(char *number, char *data)
 {
     //char cmd[32];
@@ -114,7 +111,7 @@ bool GPRS::sendSMS(char *number, char *data)
     sim900_send_cmd(data);
     delay(500);
     sim900_send_End_Mark();
-    return true;
+    return sim900_wait_for_resp("OK\r\n", CMD);
 }
 
 char GPRS::isSMSunread()
@@ -329,6 +326,35 @@ bool GPRS::disableCLIPring(void)
     return sim900_check_with_cmd("AT+CLIP=0\r\n","OK\r\n",CMD);
 }
 
+bool GPRS::getSubscriberNumber(char *number)
+{
+	//AT+CNUM
+	//+CNUM: "","+628157933874",145,7,4	
+	//
+	//OK
+
+    byte i = 0;
+    char gprsBuffer[60];
+    char *p,*s;
+    sim900_send_cmd("AT+CNUM\r\n");
+    sim900_clean_buffer(gprsBuffer,60);
+    sim900_read_buffer(gprsBuffer,60,DEFAULT_TIMEOUT);
+    if(NULL != ( s = strstr(gprsBuffer,"+CNUM:"))) {
+        s = strstr((char *)(s),",");
+        s = s + 2;  //We are in the first phone number character 
+        p = strstr((char *)(s),"\""); //p is last character """
+        if (NULL != s) {
+            i = 0;
+            while (s < p) {
+              number[i++] = *(s++);
+            }
+            number[i] = '\0';
+        }
+        return sim900_wait_for_resp("OK\r\n", CMD); 
+    }  
+    return false;
+}
+
 bool GPRS::isCallActive(char *number)
 {
     char gprsBuffer[46];  //46 is enough to see +CPAS: and CLCC:
@@ -410,10 +436,10 @@ bool GPRS::getDateTime(char *buffer)
   //AT+CCLK?						--> 8 + CRLF = 10
   //+CCLK: "14/11/13,21:14:41+04"   --> 29+ CRLF = 31
   //								--> CRLF     =  2
-  //OK
+  //OK								--> 2 + CRLF =  4
 
     byte i = 0;
-    char gprsBuffer[46];
+    char gprsBuffer[43];
     char *p,*s;
     sim900_send_cmd("AT+CCLK?\r\n");
     sim900_clean_buffer(gprsBuffer,43);
@@ -429,8 +455,7 @@ bool GPRS::getDateTime(char *buffer)
             }
             buffer[i] = '\0';            
         }
-        //We are going to flush serial data until OK is recieved
-        return sim900_wait_for_resp("OK\r\n", CMD);
+        return sim900_wait_for_resp("OK\r\n", CMD); 
     }  
     return false;
 }
