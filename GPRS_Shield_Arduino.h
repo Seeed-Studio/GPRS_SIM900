@@ -157,7 +157,19 @@ public:
      */
     bool disableCLIPring(void);
 	
-    /** Check if there is a call active and get the phone number in that case
+	/** Get Subscriber Number (your number) using AT+CNUM command, but if nothing returns, then
+	 *  you need to command this to your SIM900. (See AT+CPBS, AT+CPBW)
+	 *	AT+CPBS="ON"
+	 *	AT+CPBW=1,"+{Your Number}",145
+	 *	AT+CPBS="SM"
+	 *  @param
+	 *	@return
+	 *		true on success
+	 *		false on error
+	 */
+	bool getSubscriberNumber(char *number);
+    
+	/** Check if there is a call active and get the phone number in that case
      *  @returns
      *      true on success
      *      false on error
@@ -172,6 +184,24 @@ public:
      */        
     bool getDateTime(char *buffer);
     
+    /** Send USSD Command Synchronously (Blocking call until unsolicited response is received)
+     *  @param
+	 *		*ussdCommand string command UUSD, ex: *123#
+	 *		*resultCode	char Result Code, see AT+CUSD command
+	 *		*response	string response
+	 *		*cellBroadcast	int Cell Broadcast Data Coding Scheme
+     *  @returns
+     *      true on success
+     *      false on error
+     */     
+	bool sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response);
+
+    /** Cancel USSD Session
+     *  @returns
+     *      true on success cancel active session
+     *      false on error or because no active session
+     */
+	bool cancelUSSDSession(void);
 
 //////////////////////////////////////////////////////
 /// GPRS
@@ -260,8 +290,9 @@ public:
     //NOT USED bool gethostbyname(const char* host, uint32_t* ip); 
     
     char* getIPAddress();
-    unsigned long getIPnumber();
-    
+    unsigned long getIPnumber();	
+    bool getLocation(const __FlashStringHelper *apn, char *longitude, char *latitude);
+	
 private:
     bool checkSIMStatus(void);
     uint32_t str_to_ip(const char* str);
