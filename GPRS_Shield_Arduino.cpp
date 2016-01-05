@@ -71,8 +71,7 @@ void GPRS::powerUpDown(uint8_t pin)
   digitalWrite(pin,LOW);
   delay(3000);
 }
-    
-    
+  
 bool GPRS::checkSIMStatus(void)
 {
     char gprsBuffer[32];
@@ -93,8 +92,6 @@ bool GPRS::checkSIMStatus(void)
     return true;
 }
 
-
-
 bool GPRS::sendSMS(char *number, char *data)
 {
     //char cmd[32];
@@ -114,7 +111,7 @@ bool GPRS::sendSMS(char *number, char *data)
     sim900_send_cmd(data);
     delay(500);
     sim900_send_End_Mark();
-    return true;
+    return sim900_wait_for_resp("OK\r\n", CMD);
 }
 
 char GPRS::isSMSunread()
@@ -329,6 +326,35 @@ bool GPRS::disableCLIPring(void)
     return sim900_check_with_cmd("AT+CLIP=0\r\n","OK\r\n",CMD);
 }
 
+bool GPRS::getSubscriberNumber(char *number)
+{
+	//AT+CNUM
+	//+CNUM: "","+628157933874",145,7,4	
+	//
+	//OK
+
+    byte i = 0;
+    char gprsBuffer[60];
+    char *p,*s;
+    sim900_send_cmd("AT+CNUM\r\n");
+    sim900_clean_buffer(gprsBuffer,60);
+    sim900_read_buffer(gprsBuffer,60,DEFAULT_TIMEOUT);
+    if(NULL != ( s = strstr(gprsBuffer,"+CNUM:"))) {
+        s = strstr((char *)(s),",");
+        s = s + 2;  //We are in the first phone number character 
+        p = strstr((char *)(s),"\""); //p is last character """
+        if (NULL != s) {
+            i = 0;
+            while (s < p) {
+              number[i++] = *(s++);
+            }
+            number[i] = '\0';
+        }
+        return sim900_wait_for_resp("OK\r\n", CMD); 
+    }  
+    return false;
+}
+
 bool GPRS::isCallActive(char *number)
 {
     char gprsBuffer[46];  //46 is enough to see +CPAS: and CLCC:
@@ -410,10 +436,10 @@ bool GPRS::getDateTime(char *buffer)
   //AT+CCLK?						--> 8 + CRLF = 10
   //+CCLK: "14/11/13,21:14:41+04"   --> 29+ CRLF = 31
   //								--> CRLF     =  2
-  //OK
+  //OK								--> 2 + CRLF =  4
 
     byte i = 0;
-    char gprsBuffer[46];
+    char gprsBuffer[43];
     char *p,*s;
     sim900_send_cmd("AT+CCLK?\r\n");
     sim900_clean_buffer(gprsBuffer,43);
@@ -429,10 +455,53 @@ bool GPRS::getDateTime(char *buffer)
             }
             buffer[i] = '\0';            
         }
-        //We are going to flush serial data until OK is recieved
-        return sim900_wait_for_resp("OK\r\n", CMD);
+        return sim900_wait_for_resp("OK\r\n", CMD); 
     }  
     return false;
+}
+
+bool GPRS::sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response)
+{
+	//AT+CUSD=1,"{command}"			-->
+	//OK
+	//
+	//+CUSD:1,"{response}",{int}	--> Unsolicited Response
+
+	byte i = 0;
+    char gprsBuffer[200];
+    char *p,*s;
+    sim900_clean_buffer(response, sizeof(response));
+	
+    sim900_send_cmd("AT+CUSD=1,\"");
+    sim900_send_cmd(ussdCommand);
+    sim900_send_cmd("\"\r");
+	if(!sim900_wait_for_resp("OK\r\n", CMD))
+		return false;
+    sim900_clean_buffer(gprsBuffer,200);
+    sim900_read_buffer(gprsBuffer,200,DEFAULT_TIMEOUT);
+    if(NULL != ( s = strstr(gprsBuffer,"+CUSD: "))) {
+        *resultcode = *(s+7);
+		resultcode[1] = '\0';
+		if(!('0' <= *resultcode && *resultcode <= '2'))
+			return false;
+		s = strstr(s,"\"");
+        s = s + 1;  //We are in the first phone number character
+        p = strstr(s,"\""); //p is last character """
+        if (NULL != s) {
+            i = 0;
+            while (s < p) {
+              response[i++] = *(s++);
+            }
+            response[i] = '\0';            
+        }
+		return true;
+	}
+	return false;
+}
+
+bool GPRS::cancelUSSDSession(void)
+{
+    return sim900_check_with_cmd("AT+CUSD=2\r\n","OK\r\n",CMD);
 }
 
 //Here is where we ask for APN configuration, with F() so we can save MEMORY
@@ -689,3 +758,58 @@ unsigned long GPRS::getIPnumber()
     return false;
 }
 */
+
+bool GPRS::getLocation(const __FlashStringHelper *apn,char *longitude, char *latitude)
+{    	
+	int i = 0;
+    char gprsBuffer[80];
+    char *s;
+    
+	//send AT+SAPBR=3,1,"Contype","GPRS"
+	sim900_check_with_cmd("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r\n","OK\r\n",CMD);
+	delay(1000);
+	//sen AT+SAPBR=3,1,"APN","GPRS_APN"
+	sim900_send_cmd("AT+SAPBR=3,1,\"APN\",\"");
+	if (apn) {
+      sim900_send_cmd(apn);
+    }
+    sim900_check_with_cmd("\"\r\n","OK\r\n",CMD);
+	delay(1000);
+	//send AT+SAPBR =1,1
+	sim900_check_with_cmd("AT+SAPBR =1,1\r\n","OK\r\n",CMD);
+	delay(1000);
+	
+	//AT+CIPGSMLOC=1,1
+	sim900_send_cmd("AT+CIPGSMLOC=1,1\r\n");
+	//Serial.println("AT+CIPGSMLOC Start\n");
+	
+    sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));
+    sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),DEFAULT_TIMEOUT);
+	//Serial.println(gprsBuffer);
+	
+	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));	
+	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),5*DEFAULT_TIMEOUT);
+	//Serial.println(gprsBuffer);
+    
+	if(NULL != ( s = strstr(gprsBuffer,",")))
+	{
+		//Serial.println(*s);
+		i=0;
+		while(*(++s) !=  ',')
+		{
+			longitude[i++]=*s;
+		}
+		//Serial.println(*longitude);
+		//Serial.println(*s);        
+		i=0;
+		while(*(++s) !=  ',')
+		{
+			latitude[i++]=*s;
+		}
+		//Serial.println(*latitude);
+		//Serial.println(*s);                        
+		return true;
+	}  
+	//Serial.println("AT+CIPGSMLOC end\n");
+	return false;
+}
