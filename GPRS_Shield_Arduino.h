@@ -290,8 +290,9 @@ public:
     //NOT USED bool gethostbyname(const char* host, uint32_t* ip); 
     
     char* getIPAddress();
-    unsigned long getIPnumber();
-    
+    unsigned long getIPnumber();	
+    bool getLocation(const __FlashStringHelper *apn, char *longitude, char *latitude);
+	
 private:
     bool checkSIMStatus(void);
     uint32_t str_to_ip(const char* str);

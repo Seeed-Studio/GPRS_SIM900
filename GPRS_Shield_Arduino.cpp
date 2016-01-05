@@ -758,3 +758,58 @@ unsigned long GPRS::getIPnumber()
     return false;
 }
 */
+
+bool GPRS::getLocation(const __FlashStringHelper *apn,char *longitude, char *latitude)
+{    	
+	int i = 0;
+    char gprsBuffer[80];
+    char *s;
+    
+	//send AT+SAPBR=3,1,"Contype","GPRS"
+	sim900_check_with_cmd("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r\n","OK\r\n",CMD);
+	delay(1000);
+	//sen AT+SAPBR=3,1,"APN","GPRS_APN"
+	sim900_send_cmd("AT+SAPBR=3,1,\"APN\",\"");
+	if (apn) {
+      sim900_send_cmd(apn);
+    }
+    sim900_check_with_cmd("\"\r\n","OK\r\n",CMD);
+	delay(1000);
+	//send AT+SAPBR =1,1
+	sim900_check_with_cmd("AT+SAPBR =1,1\r\n","OK\r\n",CMD);
+	delay(1000);
+	
+	//AT+CIPGSMLOC=1,1
+	sim900_send_cmd("AT+CIPGSMLOC=1,1\r\n");
+	//Serial.println("AT+CIPGSMLOC Start\n");
+	
+    sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));
+    sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),DEFAULT_TIMEOUT);
+	//Serial.println(gprsBuffer);
+	
+	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));	
+	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),5*DEFAULT_TIMEOUT);
+	//Serial.println(gprsBuffer);
+    
+	if(NULL != ( s = strstr(gprsBuffer,",")))
+	{
+		//Serial.println(*s);
+		i=0;
+		while(*(++s) !=  ',')
+		{
+			longitude[i++]=*s;
+		}
+		//Serial.println(*longitude);
+		//Serial.println(*s);        
+		i=0;
+		while(*(++s) !=  ',')
+		{
+			latitude[i++]=*s;
+		}
+		//Serial.println(*latitude);
+		//Serial.println(*s);                        
+		return true;
+	}  
+	//Serial.println("AT+CIPGSMLOC end\n");
+	return false;
+}
