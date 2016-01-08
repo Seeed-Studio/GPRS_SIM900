@@ -298,7 +298,7 @@ public:
     
     char* getIPAddress();
     unsigned long getIPnumber();	
-    bool getLocation(const __FlashStringHelper *apn, char *longitude, char *latitude);
+    bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
 	
 private:
     bool checkSIMStatus(void);
