@@ -460,6 +460,37 @@ bool GPRS::getDateTime(char *buffer)
     return false;
 }
 
+
+bool GPRS::getSignalStrength(int *buffer)
+{
+	//AT+CSQ						--> 6 + CR = 10
+	//+CSQ: <rssi>,<ber>			--> CRLF + 5 + CRLF = 9						
+	//OK								--> CRLF + 2 + CRLF =  6
+
+	byte i = 0;
+	char gprsBuffer[26];
+	char *p, *s;
+	char buffers[4];
+	sim900_send_cmd("AT+CSQ\r");
+	sim900_clean_buffer(gprsBuffer, 26);
+	sim900_read_buffer(gprsBuffer, 26, DEFAULT_TIMEOUT);
+	if (NULL != (s = strstr(gprsBuffer, "+CSQ:"))) {
+		s = strstr((char *)(s), " ");
+		s = s + 1;  //We are in the first phone number character 
+		p = strstr((char *)(s), ","); //p is last character """
+		if (NULL != s) {
+			i = 0;
+			while (s < p) {
+				buffers[i++] = *(s++);
+			}
+			buffers[i] = '\0';
+		}
+		*buffer = atoi(buffers);
+		return true;
+	}
+	return false;
+}
+
 bool GPRS::sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response)
 {
 	//AT+CUSD=1,"{command}"			-->
