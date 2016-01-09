@@ -817,7 +817,7 @@ bool GPRS::getLocation(const __FlashStringHelper *apn, float *longitude, float *
 	sim900_flush_serial();
 	sim900_send_cmd("AT+CIPGSMLOC=1,1\r");
 	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));	
-	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),DEFAULT_TIMEOUT,6*DEFAULT_INTERCHAR_TIMEOUT);
+	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),2*DEFAULT_TIMEOUT,6*DEFAULT_INTERCHAR_TIMEOUT);
 	//Serial.println(gprsBuffer);
     
 	if(NULL != ( s = strstr(gprsBuffer,"+CIPGSMLOC:")))
