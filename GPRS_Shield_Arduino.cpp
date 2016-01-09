@@ -99,6 +99,7 @@ bool GPRS::sendSMS(char *number, char *data)
         return false;
     }
     delay(500);
+	sim900_flush_serial();
 	sim900_send_cmd("AT+CMGS=\"");
 	sim900_send_cmd(number);
     //sprintf(cmd,"AT+CMGS=\"%s\"\r\n", number);
@@ -165,7 +166,7 @@ char GPRS::isSMSunread()
         sim900_send_cmd("AT+CMGL=\"REC UNREAD\",1\r\n");
         sim900_clean_buffer(gprsBuffer,48); 
         sim900_read_buffer(gprsBuffer,47,DEFAULT_TIMEOUT);
-    //Serial.print("Buffer isSMSunread 2: ");Serial.println(gprsBuffer);       
+		//Serial.print("Buffer isSMSunread 2: ");Serial.println(gprsBuffer);       
         if(NULL != ( s = strstr(gprsBuffer,"+CMGL:"))) {
             //There is at least one UNREAD SMS, get index/position
             s = strstr(gprsBuffer,":");
@@ -292,7 +293,7 @@ bool GPRS::deleteSMS(int index)
     //return 0;
     // We have to wait OK response
 	//return sim900_check_with_cmd(cmd,"OK\r\n",CMD);
-	return sim900_check_with_cmd("\r\n","OK\r\n",CMD);	
+	return sim900_check_with_cmd("\r","OK\r\n",CMD);	
 }
 
 bool GPRS::callUp(char *number)
@@ -328,17 +329,19 @@ bool GPRS::disableCLIPring(void)
 
 bool GPRS::getSubscriberNumber(char *number)
 {
-	//AT+CNUM
-	//+CNUM: "","+628157933874",145,7,4	
-	//
-	//OK
+	//AT+CNUM								--> 7 + CR = 8
+	//+CNUM: "","+628157933874",145,7,4		--> CRLF + 45 + CRLF = 49
+	//										-->
+	//OK									--> CRLF + 2 + CRLF = 6
 
     byte i = 0;
-    char gprsBuffer[60];
+    char gprsBuffer[65];
     char *p,*s;
+	sim900_flush_serial();
     sim900_send_cmd("AT+CNUM\r\n");
-    sim900_clean_buffer(gprsBuffer,60);
-    sim900_read_buffer(gprsBuffer,60,DEFAULT_TIMEOUT);
+    sim900_clean_buffer(gprsBuffer,65);
+    sim900_read_buffer(gprsBuffer,65,DEFAULT_TIMEOUT);
+	//Serial.print(gprsBuffer);
     if(NULL != ( s = strstr(gprsBuffer,"+CNUM:"))) {
         s = strstr((char *)(s),",");
         s = s + 2;  //We are in the first phone number character 
@@ -350,7 +353,7 @@ bool GPRS::getSubscriberNumber(char *number)
             }
             number[i] = '\0';
         }
-        return sim900_wait_for_resp("OK\r\n", CMD); 
+        return true;
     }  
     return false;
 }
@@ -408,7 +411,7 @@ bool GPRS::isCallActive(char *number)
 
            sim900_clean_buffer(gprsBuffer,46);
            sim900_read_buffer(gprsBuffer,45);
-    //Serial.print("Buffer isCallActive 2: ");Serial.println(gprsBuffer);
+			//Serial.print("Buffer isCallActive 2: ");Serial.println(gprsBuffer);
            if(NULL != ( s = strstr(gprsBuffer,"+CLCC:"))) {
              //There is at least one CALL ACTIVE, get number
              s = strstr((char *)(s),"\"");
@@ -433,17 +436,18 @@ bool GPRS::isCallActive(char *number)
 
 bool GPRS::getDateTime(char *buffer)
 {
-  //AT+CCLK?						--> 8 + CRLF = 10
-  //+CCLK: "14/11/13,21:14:41+04"   --> 29+ CRLF = 31
-  //								--> CRLF     =  2
-  //OK								--> 2 + CRLF =  4
+	//AT+CCLK?						--> 8 + CR = 9
+	//+CCLK: "14/11/13,21:14:41+04"	--> CRLF + 29+ CRLF = 33
+	//								
+	//OK							--> CRLF + 2 + CRLF =  6
 
     byte i = 0;
-    char gprsBuffer[43];
+    char gprsBuffer[50];
     char *p,*s;
-    sim900_send_cmd("AT+CCLK?\r\n");
-    sim900_clean_buffer(gprsBuffer,43);
-    sim900_read_buffer(gprsBuffer,43,DEFAULT_TIMEOUT);
+	sim900_flush_serial();
+    sim900_send_cmd("AT+CCLK?\r");
+    sim900_clean_buffer(gprsBuffer,50);
+    sim900_read_buffer(gprsBuffer,50,DEFAULT_TIMEOUT);
     if(NULL != ( s = strstr(gprsBuffer,"+CCLK:"))) {
         s = strstr((char *)(s),"\"");
         s = s + 1;  //We are in the first phone number character 
@@ -455,23 +459,55 @@ bool GPRS::getDateTime(char *buffer)
             }
             buffer[i] = '\0';            
         }
-        return sim900_wait_for_resp("OK\r\n", CMD); 
+        return true;
     }  
     return false;
 }
 
+bool GPRS::getSignalStrength(int *buffer)
+{
+	//AT+CSQ						--> 6 + CR = 10
+	//+CSQ: <rssi>,<ber>			--> CRLF + 5 + CRLF = 9						
+	//OK							--> CRLF + 2 + CRLF =  6
+
+	byte i = 0;
+	char gprsBuffer[26];
+	char *p, *s;
+	char buffers[4];
+	sim900_flush_serial();
+	sim900_send_cmd("AT+CSQ\r");
+	sim900_clean_buffer(gprsBuffer, 26);
+	sim900_read_buffer(gprsBuffer, 26, DEFAULT_TIMEOUT);
+	if (NULL != (s = strstr(gprsBuffer, "+CSQ:"))) {
+		s = strstr((char *)(s), " ");
+		s = s + 1;  //We are in the first phone number character 
+		p = strstr((char *)(s), ","); //p is last character """
+		if (NULL != s) {
+			i = 0;
+			while (s < p) {
+				buffers[i++] = *(s++);
+			}
+			buffers[i] = '\0';
+		}
+		*buffer = atoi(buffers);
+		return true;
+	}
+	return false;
+}
+
 bool GPRS::sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response)
 {
-	//AT+CUSD=1,"{command}"			-->
+	//AT+CUSD=1,"{command}"
 	//OK
 	//
-	//+CUSD:1,"{response}",{int}	--> Unsolicited Response
+	//+CUSD:1,"{response}",{int}
 
 	byte i = 0;
     char gprsBuffer[200];
     char *p,*s;
     sim900_clean_buffer(response, sizeof(response));
 	
+	sim900_flush_serial();
     sim900_send_cmd("AT+CUSD=1,\"");
     sim900_send_cmd(ussdCommand);
     sim900_send_cmd("\"\r");
@@ -601,7 +637,7 @@ bool GPRS::connect(Protocol ptl,const char * host, int port, int timeout, int ch
 
     //sim900_send_cmd(cmd);
     sim900_read_buffer(resp, 96, timeout, chartimeout);
-//Serial.print("Connect resp: "); Serial.println(resp);    
+	//Serial.print("Connect resp: "); Serial.println(resp);    
     if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
         return true;
     }
@@ -626,9 +662,9 @@ bool GPRS::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashSt
     sim900_send_cmd(F("\","));
     sim900_send_cmd(port);
     sim900_send_cmd(F("\r\n"));
-//Serial.print("Connect: "); Serial.println(cmd);
+//	Serial.print("Connect: "); Serial.println(cmd);
     sim900_read_buffer(resp, 96, timeout, chartimeout);
-//Serial.print("Connect resp: "); Serial.println(resp);    
+//	Serial.print("Connect resp: "); Serial.println(resp);    
     if(NULL != strstr(resp,"CONNECT")) { //ALREADY CONNECT or CONNECT OK
         return true;
     }
@@ -759,57 +795,48 @@ unsigned long GPRS::getIPnumber()
 }
 */
 
-bool GPRS::getLocation(const __FlashStringHelper *apn,char *longitude, char *latitude)
+bool GPRS::getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude)
 {    	
 	int i = 0;
     char gprsBuffer[80];
+	char buffer[20];
     char *s;
     
 	//send AT+SAPBR=3,1,"Contype","GPRS"
-	sim900_check_with_cmd("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r\n","OK\r\n",CMD);
-	delay(1000);
+	sim900_check_with_cmd("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r","OK\r\n",CMD);
 	//sen AT+SAPBR=3,1,"APN","GPRS_APN"
 	sim900_send_cmd("AT+SAPBR=3,1,\"APN\",\"");
 	if (apn) {
       sim900_send_cmd(apn);
     }
-    sim900_check_with_cmd("\"\r\n","OK\r\n",CMD);
-	delay(1000);
+    sim900_check_with_cmd("\"\r","OK\r\n",CMD);
 	//send AT+SAPBR =1,1
-	sim900_check_with_cmd("AT+SAPBR =1,1\r\n","OK\r\n",CMD);
-	delay(1000);
+	sim900_check_with_cmd("AT+SAPBR=1,1\r","OK\r\n",CMD);
 	
 	//AT+CIPGSMLOC=1,1
-	sim900_send_cmd("AT+CIPGSMLOC=1,1\r\n");
-	//Serial.println("AT+CIPGSMLOC Start\n");
-	
-    sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));
-    sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),DEFAULT_TIMEOUT);
-	//Serial.println(gprsBuffer);
-	
+	sim900_flush_serial();
+	sim900_send_cmd("AT+CIPGSMLOC=1,1\r");
 	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));	
-	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),5*DEFAULT_TIMEOUT);
+	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),2*DEFAULT_TIMEOUT,6*DEFAULT_INTERCHAR_TIMEOUT);
 	//Serial.println(gprsBuffer);
     
-	if(NULL != ( s = strstr(gprsBuffer,",")))
+	if(NULL != ( s = strstr(gprsBuffer,"+CIPGSMLOC:")))
 	{
+		s = strstr((char *)s, ",");
+		s = s+1;
 		//Serial.println(*s);
 		i=0;
 		while(*(++s) !=  ',')
-		{
-			longitude[i++]=*s;
-		}
-		//Serial.println(*longitude);
-		//Serial.println(*s);        
+			buffer[i++]=*s;
+		buffer[i] = 0;
+		*longitude = atof(buffer);
+		       
 		i=0;
 		while(*(++s) !=  ',')
-		{
-			latitude[i++]=*s;
-		}
-		//Serial.println(*latitude);
-		//Serial.println(*s);                        
+			buffer[i++]=*s;
+		buffer[i] = 0;
+		*latitude = atof(buffer);            
 		return true;
-	}  
-	//Serial.println("AT+CIPGSMLOC end\n");
+	}
 	return false;
 }

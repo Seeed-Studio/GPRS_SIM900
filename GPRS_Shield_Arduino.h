@@ -183,6 +183,13 @@ public:
      *      false on error
      */        
     bool getDateTime(char *buffer);
+	/** get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
+	*  @param
+	*  @returns
+	*      true on success
+	*      false on error
+	*/
+	bool getSignalStrength(int *buffer);
     
     /** Send USSD Command Synchronously (Blocking call until unsolicited response is received)
      *  @param
@@ -193,7 +200,7 @@ public:
      *  @returns
      *      true on success
      *      false on error
-     */     
+     */  
 	bool sendUSSDSynchronous(char *ussdCommand, char *resultcode, char *response);
 
     /** Cancel USSD Session
@@ -291,7 +298,7 @@ public:
     
     char* getIPAddress();
     unsigned long getIPnumber();	
-    bool getLocation(const __FlashStringHelper *apn, char *longitude, char *latitude);
+    bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
 	
 private:
     bool checkSIMStatus(void);
