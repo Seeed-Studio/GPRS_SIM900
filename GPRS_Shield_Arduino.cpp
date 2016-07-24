@@ -585,7 +585,7 @@ bool GPRS::join(const __FlashStringHelper *apn, const __FlashStringHelper *userN
     if (NULL != strstr(ipAddr,"ERROR")) {
 		return false;
 	}
-    s = ipAddr + 12;
+    s = ipAddr + 11;
     p = strstr((char *)(s),"\r\n"); //p is last character \r\n
     if (NULL != s) {
         i = 0;
