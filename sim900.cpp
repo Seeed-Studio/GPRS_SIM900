@@ -1,7 +1,7 @@
 /*
  * sim900.cpp
- * A library for SeeedStudio seeeduino GPRS shield 
- *  
+ * A library for SeeedStudio seeeduino GPRS shield
+ *
  * Copyright (c) 2015 seeed technology inc.
  * Website    : www.seeed.cc
  * Author     : lawliet zou
@@ -36,7 +36,7 @@ SoftwareSerial *serialSIM900 = NULL;
 void  sim900_init(void * uart_device, uint32_t baud)
 {
     serialSIM900 = (SoftwareSerial*)uart_device;
-	serialSIM900->begin(baud);
+	  serialSIM900->begin(baud);
 }
 
 int sim900_check_readable()
@@ -62,7 +62,7 @@ int sim900_wait_readable (int wait_time)
 void sim900_flush_serial()
 {
     while(sim900_check_readable()){
-        char c = serialSIM900->read();
+        serialSIM900->read();
     }
 }
 
@@ -110,7 +110,7 @@ void sim900_send_char(const char c)
 
 void sim900_send_cmd(const char* cmd)
 {
-  for(int i=0; i<strlen(cmd); i++)
+  for(uint16_t i=0; i<strlen(cmd); i++)
     {
         sim900_send_byte(cmd[i]);
     }
@@ -121,19 +121,19 @@ void sim900_send_cmd(const __FlashStringHelper* cmd)
   int i = 0;
   const char *ptr = (const char *) cmd;
   while (pgm_read_byte(ptr + i) != 0x00) {
-    sim900_send_byte(pgm_read_byte(ptr + i++));  
+    sim900_send_byte(pgm_read_byte(ptr + i++));
   }
 }
 
 void sim900_send_cmd_P(const char* cmd)
 {
   while (pgm_read_byte(cmd) != 0x00)
-    sim900_send_byte(pgm_read_byte(cmd++));  
+    sim900_send_byte(pgm_read_byte(cmd++));
 }
 
-void sim900_send_AT(void)
+boolean sim900_send_AT(void)
 {
-    sim900_check_with_cmd(F("AT\r\n"),"OK",CMD);
+    return sim900_check_with_cmd(F("AT\r\n"),"OK",CMD);
 }
 
 void sim900_send_End_Mark(void)
@@ -162,11 +162,11 @@ boolean sim900_wait_for_resp(const char* resp, DataType type, unsigned int timeo
         if (((unsigned long) (millis() - prevChar) > chartimeout) && (prevChar != 0)) {
             return false;
         }
-        
+
     }
     //If is a CMD, we will finish to read buffer.
     if(type == CMD) sim900_flush_serial();
-    return true;   
+    return true;
 }
 
 
@@ -182,4 +182,3 @@ boolean sim900_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, 
     sim900_send_cmd(cmd);
     return sim900_wait_for_resp(resp,type,timeout,chartimeout);
 }
-
