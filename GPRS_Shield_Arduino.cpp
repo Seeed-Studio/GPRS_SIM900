@@ -63,7 +63,7 @@ bool GPRS::checkPowerUp(void)
 
 void GPRS::powerUpDown(uint8_t pin)
 {
-  // power on pulse
+  // power on pulse for SIM900 Shield
   digitalWrite(pin,LOW);
   delay(1000);
   digitalWrite(pin,HIGH);
@@ -71,6 +71,17 @@ void GPRS::powerUpDown(uint8_t pin)
   digitalWrite(pin,LOW);
   delay(3000);
 }
+
+void GPRS::powerReset(uint8_t pin)
+{
+  // reset for SIM800L board.
+  // RST pin has to be OUTPUT, HIGH
+  digitalWrite(pin,LOW);
+  delay(1000);
+  digitalWrite(pin,HIGH);
+  delay(3000);  
+}
+  
   
 bool GPRS::checkSIMStatus(void)
 {
@@ -436,6 +447,17 @@ bool GPRS::isCallActive(char *number)
 
 bool GPRS::getDateTime(char *buffer)
 {
+	//If it doesn't work may be for two reasons:
+	//		1. Your carrier doesn't give that information
+	//		2. You have to configurate the SIM900 IC.
+	//			- First with SIM900_Serial_Debug example try this AT command: AT+CLTS?
+	//			- If response is 0, then it is disabled.
+	//			- Enable it by: AT+CLTS=1
+	//			- Now you have to save this config to EEPROM memory of SIM900 IC by: AT&W
+	//			- Now, you have to power down and power up again the SIM900 
+	//			- Try now again: AT+CCLK?
+	//			- It should work
+	
 	//AT+CCLK?						--> 8 + CR = 9
 	//+CCLK: "14/11/13,21:14:41+04"	--> CRLF + 29+ CRLF = 33
 	//								
