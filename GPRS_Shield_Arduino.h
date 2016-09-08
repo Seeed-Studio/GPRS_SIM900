@@ -79,7 +79,15 @@ public:
      *  @returns
      *      
      */
-    void powerUpDown(uint8_t pin);
+    void powerUpDown(uint8_t pin);  
+    
+    /** power reset for SIM800 board 
+     *  @param  pin (preconfigurated as OUTPUT)
+     *  @returns
+     *      
+     */	
+    void powerReset(uint8_t pin);
+     
      
     /** send text SMS
      *  @param  *number phone number which SMS will be send to
@@ -181,8 +189,22 @@ public:
      *  @returns
      *      true on success
      *      false on error
+     * 
+     * 	   If it doesn't work may be for two reasons:
+     *	 	1. Your carrier doesn't give that information
+     *		2. You have to configurate the SIM900 IC.
+         *			- First with SIM900_Serial_Debug example try this AT command: AT+CLTS?
+	 *			- If response is 0, then it is disabled.
+	 *			- Enable it by: AT+CLTS=1
+	 *			- Now you have to save this config to EEPROM memory of SIM900 IC by: AT&W
+	 *			- Now, you have to power down and power up again the SIM900 
+	 *			- Try now again: AT+CCLK?
+	 *			- It should work now
+	 *
+     */
      */        
     bool getDateTime(char *buffer);
+    
 	/** get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
 	*  @param
 	*  @returns
