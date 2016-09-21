@@ -202,7 +202,6 @@ public:
 	 *			- It should work now
 	 *
      */
-     */        
     bool getDateTime(char *buffer);
     
 	/** get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
