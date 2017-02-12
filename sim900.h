@@ -36,7 +36,7 @@
 #include <Arduino.h>
 
 #define DEFAULT_TIMEOUT     		 5   //seconds
-#define DEFAULT_INTERCHAR_TIMEOUT 1500   //miliseconds
+#define DEFAULT_INTERCHAR_TIMEOUT 3000   //miliseconds
 
 enum DataType {
     CMD     = 0,
