@@ -292,6 +292,13 @@ public:
      */
     int send(const char * str, int len);
 
+    /** send data to socket without AT+CIPSEND=len
+     *  @param socket socket
+     *  @param str string to be sent
+     *  @returns true if successful
+     */
+    boolean send(const char * str);
+	
     /** read data from socket
      *  @param socket socket
      *  @param buf buffer that will store the data read from socket
