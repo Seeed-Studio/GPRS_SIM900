@@ -13,12 +13,22 @@ char http_cmd[] = "GET /media/uploads/mbed_official/hello.txt HTTP/1.0\r\n\r\n";
 char buffer[512];
 GPRS gprs(PIN_TX, PIN_RX, BAUDRATE);
 void setup(){
+  gprs.checkPowerUp();
   Serial.begin(9600);
+  Serial.print("Start TCP demostration...\r\n");
+
   // use DHCP
   while(!gprs.init()) {
       delay(1000);
-      Serial.print("init error\r\n");
+      Serial.print("Initializing...\r\n");
   }
+  
+  while(!gprs.isNetworkRegistered())
+  {
+    delay(1000);
+    Serial.println("Network has not registered yet!");
+  }
+
   delay(3000);    
   // attempt DHCP
   while(!gprs.join(F("cmnet"))) {

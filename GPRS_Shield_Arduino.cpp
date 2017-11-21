@@ -53,12 +53,17 @@ bool GPRS::init(void)
     if(!checkSIMStatus()) {
 		return false;
     }
+
     return true;
 }
 
 bool GPRS::checkPowerUp(void)
 {
-  return sim900_check_with_cmd(F("AT\r\n"),"OK\r\n",CMD);
+  if(!sim900_check_with_cmd(F("AT\r\n"),"OK\r\n",CMD))
+  {
+      powerUpDown(9);
+  }
+
 }
 
 void GPRS::powerUpDown(uint8_t pin)
@@ -103,8 +108,28 @@ bool GPRS::checkSIMStatus(void)
     return true;
 }
 
-bool GPRS::sendSMS(char *number, char *data)
+bool GPRS::isNetworkRegistered(void)
 {
+    char gprsBuffer[32];
+    int count = 0;
+    sim900_clean_buffer(gprsBuffer,32);
+    while(count < 3) {
+        sim900_send_cmd(F("AT+CREG?\r\n"));
+        sim900_read_buffer(gprsBuffer,32,DEFAULT_TIMEOUT);
+        if((NULL != strstr(gprsBuffer,"+CREG: 0,1"))) {
+            break;
+        }
+        count++;
+        delay(300);
+    }
+    if(count == 3) {
+        return false;
+    }
+    return true;
+}
+
+bool GPRS::sendSMS(char *number, char *data)
+{    
     //char cmd[32];
     if(!sim900_check_with_cmd(F("AT+CMGF=1\r\n"), "OK\r\n", CMD)) { // Set message mode to ASCII
         return false;
@@ -123,7 +148,7 @@ bool GPRS::sendSMS(char *number, char *data)
     sim900_send_cmd(data);
     delay(500);
     sim900_send_End_Mark();
-    return sim900_wait_for_resp("OK\r\n", CMD);
+    return sim900_wait_for_resp("OK\r\n", CMD, 10000, 5000);
 }
 
 char GPRS::isSMSunread()
@@ -574,6 +599,8 @@ bool GPRS::join(const __FlashStringHelper *apn, const __FlashStringHelper *userN
     //set APN. OLD VERSION
     //snprintf(cmd,sizeof(cmd),"AT+CSTT=\"%s\",\"%s\",\"%s\"\r\n",_apn,_userName,_passWord);
     //sim900_check_with_cmd(cmd, "OK\r\n", DEFAULT_TIMEOUT,CMD);
+    
+    sim900_check_with_cmd("AT+CIPSHUT\r\n", "SHUT OK\r\n", CMD, 2000, 1000);  /**Reset the IP session if any**/
     sim900_send_cmd(F("AT+CSTT=\""));
     if (apn) {
       sim900_send_cmd(apn);
@@ -880,4 +907,9 @@ bool GPRS::getLocation(const __FlashStringHelper *apn, float *longitude, float *
 		return true;
 	}
 	return false;
+}
+
+void GPRS::AT_Bypass()
+{
+    sim900_AT_bypass();
 }

@@ -30,11 +30,12 @@ int messageIndex = 0;
 char phone[16];
 char datetime[24];
 
-GPRS gprsTest(PIN_TX,PIN_RX,BAUDRATE);//RX,TX,PWR,BaudRate
+GPRS gprs(PIN_TX,PIN_RX,BAUDRATE);//RX,TX,PWR,BaudRate
 
 void setup() {
+  gprs.checkPowerUp();
   Serial.begin(9600);
-  while(!gprsTest.init()) {
+  while(!gprs.init()) {
       Serial.print("init error\r\n");
       delay(1000);
   }
@@ -43,11 +44,11 @@ void setup() {
 }
 
 void loop() {
-   messageIndex = gprsTest.isSMSunread();
+   messageIndex = gprs.isSMSunread();
    if (messageIndex > 0) { //At least, there is one UNREAD SMS
-      gprsTest.readSMS(messageIndex, message, MESSAGE_LENGTH, phone, datetime);           
+      gprs.readSMS(messageIndex, message, MESSAGE_LENGTH, phone, datetime);
       //In order not to full SIM Memory, is better to delete it
-      gprsTest.deleteSMS(messageIndex);
+      gprs.deleteSMS(messageIndex);
       Serial.print("From number: ");
       Serial.println(phone);  
       Serial.print("Datetime: ");

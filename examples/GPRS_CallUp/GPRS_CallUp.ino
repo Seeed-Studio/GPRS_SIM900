@@ -17,17 +17,25 @@ by lawliet.zou(lawliet.zou@gmail.com)
 #define BAUDRATE  9600
 #define PHONE_NUMBER  "567***677"
 
-GPRS gprsTest(PIN_TX,PIN_RX,BAUDRATE);//RX,TX,PWR,BaudRate
+GPRS gprs(PIN_TX,PIN_RX,BAUDRATE);//RX,TX,PWR,BaudRate
 
 void setup() {
+  gprs.checkPowerUp();
   Serial.begin(9600);
-  while(!gprsTest.init()) { //gprs init
+  while(!gprs.init()) {
       delay(1000);
-      Serial.print("init error\r\n");
+      Serial.println("Initialization failed!");
+  }  
+
+  while(!gprs.isNetworkRegistered())
+  {
+    delay(1000);
+    Serial.println("Network has not registered yet!");
   }
-  Serial.println("gprs init success");
+
+  Serial.println("gprs initialize done");
   Serial.println("start to call ...");
-  gprsTest.callUp(PHONE_NUMBER);
+  gprs.callUp(PHONE_NUMBER);
 }
 
 void loop() {

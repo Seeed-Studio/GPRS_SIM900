@@ -15,20 +15,36 @@ by lawliet.zou(lawliet.zou@gmail.com)
 #define PIN_TX    7
 #define PIN_RX    8
 #define BAUDRATE  9600
-#define PHONE_NUMBER "186****2964"
+#define PHONE_NUMBER "183******27"
 #define MESSAGE  "hello,world"
 
-GPRS gprsTest(PIN_TX,PIN_RX,BAUDRATE);//RX,TX,BaudRate
+GPRS gprs(PIN_TX,PIN_RX,BAUDRATE);//RX,TX,BaudRate
 
 void setup() {
-  Serial.begin(9600);
-  while(!gprsTest.init()) {
+  gprs.checkPowerUp();
+  Serial.begin(9600);   
+  
+  while(!gprs.init()) {
       delay(1000);
-      Serial.print("init error\r\n");
+      Serial.println("Initialization failed!");
   }  
-  Serial.println("gprs init success");
+
+  while(!gprs.isNetworkRegistered())
+  {
+    delay(1000);
+    Serial.println("Network has not registered yet!");
+  }
+
+  Serial.println("gprs initialize done!");
   Serial.println("start to send message ...");
-  gprsTest.sendSMS(PHONE_NUMBER,MESSAGE); //define phone number and text
+  
+  if(gprs.sendSMS(PHONE_NUMBER,MESSAGE)) //define phone number and text
+  {
+    Serial.print("Send SMS Succeed!\r\n");
+  }
+  else {
+    Serial.print("Send SMS failed!\r\n");
+  }
 }
 
 void loop() {

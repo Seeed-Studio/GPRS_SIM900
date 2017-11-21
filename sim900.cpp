@@ -151,6 +151,7 @@ boolean sim900_wait_for_resp(const char* resp, DataType type, unsigned int timeo
     while(1) {
         if(sim900_check_readable()) {
             char c = serialSIM900->read();
+            DEBUG(c);
             prevChar = millis();
             sum = (c==resp[sum]) ? sum+1 : 0;
             if(sum == len)break;
@@ -181,4 +182,14 @@ boolean sim900_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, 
 {
     sim900_send_cmd(cmd);
     return sim900_wait_for_resp(resp,type,timeout,chartimeout);
+}
+
+void sim900_AT_bypass()
+{    
+  if(serialSIM900->available()){
+    Serial.write(serialSIM900->read());
+  }
+  if(Serial.available()){   
+    serialSIM900->write(Serial.read());
+  }
 }

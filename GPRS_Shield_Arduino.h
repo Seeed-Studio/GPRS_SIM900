@@ -87,6 +87,11 @@ public:
      *      
      */	
     void powerReset(uint8_t pin);
+
+    /** Check network registration status
+     *  @return true on success, false on fail
+     */
+    bool isNetworkRegistered(void);
      
      
     /** send text SMS
@@ -327,7 +332,8 @@ public:
     char* getIPAddress();
     unsigned long getIPnumber();	
     bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
-	
+    void AT_Bypass();
+    
 private:
     bool checkSIMStatus(void);
     uint32_t str_to_ip(const char* str);

@@ -38,6 +38,10 @@
 #define DEFAULT_TIMEOUT     		 5   //seconds
 #define DEFAULT_INTERCHAR_TIMEOUT 3000   //miliseconds
 
+
+#define DEBUG(x) 
+//#define DEBUG(x) Serial.print(x)  
+
 enum DataType {
     CMD     = 0,
     DATA    = 1,
@@ -59,5 +63,6 @@ void  sim900_send_End_Mark(void);
 boolean  sim900_wait_for_resp(const char* resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
 boolean  sim900_check_with_cmd(const char* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT*5);
 boolean  sim900_check_with_cmd(const __FlashStringHelper* cmd, const char *resp, DataType type, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+void sim900_AT_bypass();
 
 #endif
