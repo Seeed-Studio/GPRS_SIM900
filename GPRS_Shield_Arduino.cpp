@@ -148,7 +148,7 @@ bool GPRS::sendSMS(char *number, char *data)
     sim900_send_cmd(data);
     delay(500);
     sim900_send_End_Mark();
-    return sim900_wait_for_resp("OK\r\n", CMD, 10000, 5000);
+    return sim900_wait_for_resp("OK\r\n", CMD);
 }
 
 char GPRS::isSMSunread()
