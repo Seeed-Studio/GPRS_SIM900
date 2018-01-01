@@ -116,15 +116,9 @@ bool GPRS::isNetworkRegistered(void)
     while(count < 3) {
         sim900_send_cmd(F("AT+CREG?\r\n"));
         sim900_read_buffer(gprsBuffer,32,DEFAULT_TIMEOUT);
-	//Check if roaming is enabled and if it is look also for +CREG: 0,5 response
-	if(!ROAMING) {
-		if((NULL != strstr(gprsBuffer,"+CREG: 0,1"))) {
-		    break;
-		}
-	} else {
-		if((NULL != strstr(gprsBuffer,"+CREG: 0,1")) || (NULL != strstr(gprsBuffer,"+CREG: 0,5")) ) {
-			break;
-		}
+	//Check if home network (0,1) ir roaming (0,5) is enabled
+	if( (NULL != strstr(gprsBuffer,"+CREG: 0,1")) || (NULL != strstr(gprsBuffer,"+CREG: 0,5")) ) {
+		break;
 	}
         count++;
         delay(300);
