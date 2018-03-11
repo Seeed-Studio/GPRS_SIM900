@@ -34,25 +34,35 @@
 
 GPRS* GPRS::inst;
 
-GPRS::GPRS(uint8_t tx, uint8_t rx, uint32_t baudRate):gprsSerial(tx,rx)
+GPRS::GPRS(HardwareSerial *pHWSerial, uint32_t baudRate): gprsSerial(60, 61)
+{
+	inst = this;
+	pHWSerial->begin(baudRate);
+	sim900_init(pHWSerial);
+}
+
+GPRS::GPRS(uint8_t tx, uint8_t rx, uint32_t baudRate): gprsSerial(tx, rx)
 {
     inst = this;
-    sim900_init(&gprsSerial, baudRate);
+	gprsSerial.begin(baudRate);
+    sim900_init(&gprsSerial);
 }
 
 bool GPRS::init(void)
 {
+	Serial.println("11111");
     if(!sim900_check_with_cmd(F("AT\r\n"),"OK\r\n",CMD)){
 		return false;
     }
-    
+	Serial.println("22222");
     if(!sim900_check_with_cmd(F("AT+CFUN=1\r\n"),"OK\r\n",CMD)){
         return false;
     }
-    
+	Serial.println("33333");
     if(!checkSIMStatus()) {
 		return false;
     }
+	Serial.println("44444");
 
     return true;
 }
@@ -129,7 +139,7 @@ bool GPRS::isNetworkRegistered(void)
     return true;
 }
 
-bool GPRS::sendSMS(char *number, char *data)
+bool GPRS::sendSMS(const char *number, const char *data)
 {    
     //char cmd[32];
     if(!sim900_check_with_cmd(F("AT+CMGF=1\r\n"), "OK\r\n", CMD)) { // Set message mode to ASCII

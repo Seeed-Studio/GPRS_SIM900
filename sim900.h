@@ -47,7 +47,7 @@ enum DataType {
     DATA    = 1,
 };
 
-void  sim900_init(void * uart_device, uint32_t baud);
+void  sim900_init(Stream* uart_device);
 int   sim900_check_readable();
 int   sim900_wait_readable(int wait_time);
 void  sim900_flush_serial();
