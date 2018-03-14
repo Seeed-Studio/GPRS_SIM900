@@ -31,12 +31,12 @@
 
 #include "sim900.h"
 
-SoftwareSerial *serialSIM900 = NULL;
 
-void  sim900_init(void * uart_device, uint32_t baud)
+Stream *serialSIM900 = NULL;
+
+void  sim900_init(Stream* uart_device)
 {
-    serialSIM900 = (SoftwareSerial*)uart_device;
-	  serialSIM900->begin(baud);
+    serialSIM900 = uart_device;
 }
 
 int sim900_check_readable()

@@ -51,7 +51,8 @@ public:
      *  @param number default phone number during mobile communication
      */
 	 
-    GPRS(uint8_t tx, uint8_t rx, uint32_t baudRate = 9600 ); 
+    GPRS(HardwareSerial *pHWSerial, uint32_t baudRate = 9600 );
+	GPRS(uint8_t tx,  uint8_t rx, uint32_t baudRate = 9600 ); 
     
     /** get instance of GPRS class
      */
@@ -101,7 +102,7 @@ public:
      *      false on success
      *      true on error
      */
-    bool sendSMS(char* number, char* data);
+    bool sendSMS(const char* number, const char* data);
 
     /** Check if there is any UNREAD SMS: this function DOESN'T change the UNREAD status of the SMS
      *  @returns
