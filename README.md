@@ -5,9 +5,13 @@ Only two special functions are different for SIM900 Shield or SIM800L PCB boards
   - For SIM900 shield you have to use powerUpDown.
   - For SIM800L with RST pin, you have to use powerReset.
 
-![Shield - GPRS Shield V2.0](http://wiki.seeedstudio.com/images/a/a8/GPRS_Shield_V3.0_p1.jpg)
+![](https://github.com/SeeedDocument/GPRS_Shield_V3.0/raw/master/img/GPRS_Shield_V3.0_p1.jpg)
 
-GPRS Shield provide you a way to DIY your own **mobile phone**. You can use your GRPS Shield to dial a phone number or send a text message to your friend. Besides these, you can use it to access the network and view web pages. For more information, you can visit our [Wiki Page](http://wiki.seeedstudio.com/wiki/GPRS_Shield_V3.0)
+[GPRS Shield 3.0](https://www.seeedstudio.com/s/GPRS-Shield-V3.0-p-2333.html)
+
+
+
+GPRS Shield provide you a way to DIY your own **mobile phone**. You can use your GRPS Shield to dial a phone number or send a text message to your friend. Besides these, you can use it to access the network and view web pages. For more information, you can visit our [Wiki Page](http://wiki.seeedstudio.com/GPRS_Shield_V3.0/)
 
 Features
 ===
