@@ -1,0 +1,57 @@
+  
+#######################################
+# Syntax Coloring Map For 
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+init	KEYWORD2
+checkPowerUp	KEYWORD2
+powerUpDown	KEYWORD2
+powerReset	KEYWORD2
+isNetworkRegistered	KEYWORD2
+sendSMS	KEYWORD2
+isSMSunread	KEYWORD2
+readSMS	KEYWORD2
+readSMS	KEYWORD2
+deleteSMS	KEYWORD2
+callUp	KEYWORD2
+answer	KEYWORD2
+hangup	KEYWORD2
+disableCLIPring	KEYWORD2
+getSubscriberNumber	KEYWORD2
+isCallActive	KEYWORD2
+getDateTime	KEYWORD2
+getSignalStrength	KEYWORD2
+sendUSSDSynchronous	KEYWORD2
+cancelUSSDSession	KEYWORD2
+join	KEYWORD2
+disconnect	KEYWORD2
+connect	KEYWORD2
+connect	KEYWORD2
+is_connected	KEYWORD2
+close	KEYWORD2
+readable	KEYWORD2
+wait_readable	KEYWORD2
+wait_writeable	KEYWORD2
+send	KEYWORD2
+send	KEYWORD2
+recv	KEYWORD2
+listen	KEYWORD2
+isListening	KEYWORD2
+getIPAddress	KEYWORD2
+getLocation	KEYWORD2
+AT_Bypass	KEYWORD2
+checkSIMStatus	KEYWORD2
+str_to_ip	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
