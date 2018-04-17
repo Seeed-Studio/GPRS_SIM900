@@ -430,11 +430,12 @@ bool GPRS::isCallActive(char *number)
       OK
     */
 
-    sim900_clean_buffer(gprsBuffer,29);
-    sim900_read_buffer(gprsBuffer,27);
     //HACERR cuando haga lo de esperar a OK no me haría falta esto
     //We are going to flush serial data until OK is recieved
-    sim900_wait_for_resp("OK\r\n", CMD);    
+    sim900_wait_for_resp("OK\r\n", CMD);
+    
+    sim900_clean_buffer(gprsBuffer,29);
+    sim900_read_buffer(gprsBuffer,27);
     //Serial.print("Buffer isCallActive 1: ");Serial.println(gprsBuffer);
     if(NULL != ( s = strstr(gprsBuffer,"+CPAS:"))) {
       s = s + 7;
