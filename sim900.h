@@ -52,6 +52,7 @@ int   sim900_check_readable();
 int   sim900_wait_readable(int wait_time);
 void  sim900_flush_serial();
 void  sim900_read_buffer(char* buffer,int count,  unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+uint16_t sim900_read_string_until(char *buffer, int count, char *pattern, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
 void  sim900_clean_buffer(char* buffer, int count);
 void  sim900_send_byte(uint8_t data);
 void  sim900_send_char(const char c);

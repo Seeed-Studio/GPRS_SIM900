@@ -90,6 +90,38 @@ void sim900_read_buffer(char *buffer, int count, unsigned int timeout, unsigned 
     }
 }
 
+uint16_t sim900_read_string_until(char *buffer, int count, char *pattern, unsigned int timeout, unsigned int chartimeout)
+{
+    uint16_t i = 0;
+    uint8_t sum = 0;
+    uint8_t len = strlen(pattern);
+    bool is_timeout = false;
+    unsigned long timerStart, prevChar;
+    
+    timerStart = millis();
+    prevChar = 0;
+    while(1) {
+        if(serialSIM900->available()) {
+            char c = serialSIM900->read();
+            DEBUG(c);
+            prevChar = millis();
+            buffer[i++] = c;
+            if(i >= count)break;
+            sum = (c==pattern[sum]) ? sum+1 : 0;
+            if(sum == len)break;
+        }
+        if(i >= count)break;
+        if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
+            break;
+        }
+        //If interchar Timeout => return FALSE. So we can return sooner from this function. Not DO it if we dont recieve at least one char (prevChar <> 0)
+        if (((unsigned long) (millis() - prevChar) > chartimeout) && (prevChar != 0)) {
+            break;
+        }
+    }
+    return (uint16_t)(i - 1);
+}
+
 void sim900_clean_buffer(char *buffer, int count)
 {
     for(int i=0; i < count; i++) {
