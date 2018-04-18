@@ -406,7 +406,7 @@ bool GPRS::getSubscriberNumber(char *number)
 
 bool GPRS::isCallActive(char *number)
 {
-    char gprsBuffer[46];  //46 is enough to see +CPAS: and CLCC:
+    char gprsBuffer[64];  //46 is enough to see +CPAS: and CLCC:
     char *p, *s;
     int i = 0;
 
@@ -430,19 +430,18 @@ bool GPRS::isCallActive(char *number)
       OK
     */
 
-    sim900_clean_buffer(gprsBuffer,29);
-    sim900_read_buffer(gprsBuffer,27);
+    sim900_clean_buffer(gprsBuffer,64);
+    sim900_read_string_until(gprsBuffer,64, "OK", 2);
     //HACERR cuando haga lo de esperar a OK no me haría falta esto
     //We are going to flush serial data until OK is recieved
-    sim900_wait_for_resp("OK\r\n", CMD);    
-    //Serial.print("Buffer isCallActive 1: ");Serial.println(gprsBuffer);
     if(NULL != ( s = strstr(gprsBuffer,"+CPAS:"))) {
       s = s + 7;
       if (*s != '0') {
          //There is something "running" (but number 2 that is unknow)
          if (*s != '2') {
-           //3 or 4, let's go to check for the number
-           sim900_send_cmd(F("AT+CLCC\r\n"));
+           //3 or 4, let's go to check for the number            
+            delay(5);
+            sim900_send_cmd(F("AT+CLCC\r\n"));
            /*
            AT+CLCC --> 9
            
@@ -455,9 +454,9 @@ bool GPRS::isCallActive(char *number)
            OK              
            */
 
-           sim900_clean_buffer(gprsBuffer,46);
-           sim900_read_buffer(gprsBuffer,45);
-			//Serial.print("Buffer isCallActive 2: ");Serial.println(gprsBuffer);
+           sim900_clean_buffer(gprsBuffer,64);
+           sim900_read_string_until(gprsBuffer,64, "OK", 2);
+			     //Serial.print("Buffer isCallActive 2: ");Serial.println(gprsBuffer);
            if(NULL != ( s = strstr(gprsBuffer,"+CLCC:"))) {
              //There is at least one CALL ACTIVE, get number
              s = strstr((char *)(s),"\"");
@@ -470,10 +469,8 @@ bool GPRS::isCallActive(char *number)
                 }
                 number[i] = '\0';            
              }
-             //I need to read more buffer
-             //We are going to flush serial data until OK is recieved
-             return sim900_wait_for_resp("OK\r\n", CMD); 
            }
+           return true;
          }
       }        
     } 
