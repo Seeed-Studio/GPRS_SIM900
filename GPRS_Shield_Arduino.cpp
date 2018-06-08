@@ -64,6 +64,12 @@ bool GPRS::init(void)
     }
 	Serial.println("44444");
 
+    // Disable SMS notifications
+    if(!sim900_check_with_cmd(F("AT+CNMI=0,0,0,0,0\r\n"),"OK\r\n",CMD)){
+        return false;
+    }
+	Serial.println("55555");
+
     return true;
 }
 
