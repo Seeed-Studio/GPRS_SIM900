@@ -67,7 +67,7 @@ bool GPRS::init(void)
     return true;
 }
 
-bool GPRS::checkPowerUp(void)
+bool GPRS::checkPowerUp(uint8_t pin)
 {
   if(!sim900_check_with_cmd(F("AT\r\n"),"OK\r\n",CMD))
   {
