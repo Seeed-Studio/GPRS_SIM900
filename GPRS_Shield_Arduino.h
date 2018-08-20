@@ -68,11 +68,12 @@ public:
 
    
     /** check if GPRS module is powered on or not
+     *  @param  pin pin 9 connected to JP jumper so we can power up and down through software
      *  @returns
      *      true on success
      *      false on error
      */
-    bool checkPowerUp(void);
+    bool checkPowerUp(uint8_t pin = 9);
 
     
     /** power Up GPRS module (JP has to be soldered)
