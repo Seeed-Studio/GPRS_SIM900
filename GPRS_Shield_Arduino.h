@@ -50,8 +50,6 @@ public:
     /** Create GPRS instance
      *  @param number default phone number during mobile communication
      */
-	 
-    GPRS(HardwareSerial *pHWSerial, uint32_t baudRate = 9600 );
 	GPRS(uint8_t tx,  uint8_t rx, uint32_t baudRate = 9600 ); 
     
     /** get instance of GPRS class
@@ -68,12 +66,11 @@ public:
 
    
     /** check if GPRS module is powered on or not
-     *  @param  pin pin 9 connected to JP jumper so we can power up and down through software
      *  @returns
      *      true on success
      *      false on error
      */
-    bool checkPowerUp(uint8_t pin = 9);
+    bool checkPowerUp(void);
 
     
     /** power Up GPRS module (JP has to be soldered)
@@ -89,7 +86,6 @@ public:
      *      
      */	
     void powerReset(uint8_t pin);
-
     /** Check network registration status
      *  @return true on success, false on fail
      */
@@ -200,7 +196,7 @@ public:
      * 	   If it doesn't work may be for two reasons:
      *	 	1. Your carrier doesn't give that information
      *		2. You have to configurate the SIM900 IC.
-         *			- First with SIM900_Serial_Debug example try this AT command: AT+CLTS?
+     *			- First with SIM900_Serial_Debug example try this AT command: AT+CLTS?
 	 *			- If response is 0, then it is disabled.
 	 *			- Enable it by: AT+CLTS=1
 	 *			- Now you have to save this config to EEPROM memory of SIM900 IC by: AT&W
@@ -210,6 +206,14 @@ public:
 	 *
      */
     bool getDateTime(char *buffer);
+	
+    /** get battery voltage from SIM900 in mV
+     *  @param
+     *  @returns
+     *      true on success
+     *      false on error
+     */
+    bool getVcc(char *buffer);
     
 	/** get Signal Strength from SIM900 (see AT command: AT+CSQ) as integer
 	*  @param
@@ -238,6 +242,23 @@ public:
      */
 	bool cancelUSSDSession(void);
 
+//////////////////////////////////////////////////////
+/// SLEEP
+////////////////////////////////////////////////////// 	
+    /** Enter sleep mode (AT+CSCLK=2)
+     *  @returns
+     *      true on success
+     *      false on error
+     */
+	bool sleep(void);	
+	
+    /** Exit sleep mode (AT+CSCLK=0)
+     *  @returns
+     *      true on success
+     *      false on error
+     */
+	bool wake(void);		
+	
 //////////////////////////////////////////////////////
 /// GPRS
 //////////////////////////////////////////////////////  
@@ -334,8 +355,7 @@ public:
     char* getIPAddress();
     unsigned long getIPnumber();	
     bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
-    void AT_Bypass();
-    
+    void AT_Bypass();	
 private:
     bool checkSIMStatus(void);
     uint32_t str_to_ip(const char* str);
