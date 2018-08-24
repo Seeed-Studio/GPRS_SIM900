@@ -649,7 +649,7 @@ bool GPRS::wake(void)
 	//Second delay almost 100 ms
 	delay(200);
 	sim900_flush_serial();
-	//Third, send the second AT command to check that it is alive HACERR posible while durante un tiempo reintentando los ATs
+	//Third, send the second AT command to check that it is alive
     timerStart = millis();
     while(!ok && ((unsigned long) (millis() - timerStart) < 3000UL) ) {  //Until 3 seconds maximum
 		ok = sim900_check_with_cmd(F("AT\r\n"),"OK",CMD);
