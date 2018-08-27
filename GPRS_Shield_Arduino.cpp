@@ -603,11 +603,10 @@ bool GPRS::getBookEntry(int index, char* number, int *type, char *name)
 	
 	char gprsBuffer[100];
 	char tmp[4];
-	char indexStr[4];
 	
 	sim900_send_cmd(F("AT+CPBR="));
-	itoa(index, indexStr, 10);
-	sim900_send_cmd(indexStr);
+	itoa(index, tmp, 10);
+	sim900_send_cmd(tmp);
 	sim900_send_cmd(F("\r\n"));
 		
 	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));
@@ -640,8 +639,8 @@ bool GPRS::getBookEntry(int index, char* number, int *type, char *name)
 		return false;
 	}
 	
-	strncpy(number, idx+2, (num-(idx+3)) <= 40 ? (num-(idx+3)) : 40);	// We also remove " from the number so we increment idx
-	number[(num-(idx+3)) <= 40 ? (num-(idx+3)) : 40] = '\0';
+	strncpy(number, idx+2, (num-(idx+3)) <= numMax ? (num-(idx+3)) : numMax);	// We also remove " from the number so we increment idx
+	number[(num-(idx+3)) <= numMax ? (num-(idx+3)) : numMax] = '\0';
 	
 	if(NULL == (typ = strchr(num+1, ','))) {
 		return false;
@@ -656,8 +655,8 @@ bool GPRS::getBookEntry(int index, char* number, int *type, char *name)
 		*type = strtol(tmp, NULL, 10);
 	}
 	
-	strncpy(name, typ+2, (end-(typ+3)) <= 17 ? (end-(typ+3)) : 17);		// We also remove " from the name so we increment typ
-	name[(end-(typ+3)) <= 17 ? (end-(typ+3)) : 17] = '\0';
+	strncpy(name, typ+2, (end-(typ+3)) <= nameMax ? (end-(typ+3)) : nameMax);		// We also remove " from the name so we increment typ
+	name[(end-(typ+3)) <= nameMax ? (end-(typ+3)) : nameMax] = '\0';
 
 	return true;
 }
