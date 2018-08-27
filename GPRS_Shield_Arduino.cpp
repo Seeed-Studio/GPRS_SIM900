@@ -594,6 +594,104 @@ bool GPRS::cancelUSSDSession(void)
     return sim900_check_with_cmd(F("AT+CUSD=2\r\n"),"OK\r\n",CMD);
 }
 
+bool GPRS::getBookEntry(int index, char* number, int *type, char *name)
+{
+		
+	//AT+GPBR=? 		=>		+CPBR:(1-250),40,17		+CPBR: (range phone book),number length, name length
+	static const int numMax		= 40;
+	static const int nameMax	= 17;
+	
+	char gprsBuffer[100];
+	char tmp[4];
+	
+	sim900_send_cmd(F("AT+CPBR="));
+	itoa(index, tmp, 10);
+	sim900_send_cmd(tmp);
+	sim900_send_cmd(F("\r\n"));
+		
+	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));
+	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),DEFAULT_TIMEOUT);
+	
+	//+CPBR: <index>,<number>,<type>,<text>
+	
+	char *beg, *end, *idx, *num, *typ;
+	
+	if(NULL == (beg = strstr(gprsBuffer, "+CPBR: "))) {
+		return false;
+	}
+	
+	if(NULL == (end = strstr(beg, "\r\n"))) {
+		return false;
+	}
+	
+	if(NULL == (idx = strchr(beg, ','))) {
+		return false;
+	}
+	
+	strncpy(tmp, beg+7, (idx-(beg+7)) <= 3 ? (idx-(beg+7)) : 3);
+	tmp[(idx-(beg+7)) <= 3 ? (idx-(beg+7)) : 3] = '\0';
+	
+	if(strtol(tmp, NULL, 10) != index) {
+		return false;
+	}
+	
+	if(NULL == (num = strchr(idx+1, ','))) {
+		return false;
+	}
+	
+	strncpy(number, idx+2, (num-(idx+3)) <= numMax ? (num-(idx+3)) : numMax);	// We also remove " from the number so we increment idx
+	number[(num-(idx+3)) <= numMax ? (num-(idx+3)) : numMax] = '\0';
+	
+	if(NULL == (typ = strchr(num+1, ','))) {
+		return false;
+	}
+	
+	strncpy(tmp, num+1, (typ-(num+1)) <= 3 ? (typ-(num+1)) : 3);
+	tmp[(typ-(num+1)) <= 3 ? (typ-(num+1)) : 3] = '\0';
+	
+	if(strtol(tmp, NULL, 10) == 0) {
+		return false;
+	} else {
+		*type = strtol(tmp, NULL, 10);
+	}
+	
+	strncpy(name, typ+2, (end-(typ+3)) <= nameMax ? (end-(typ+3)) : nameMax);		// We also remove " from the name so we increment typ
+	name[(end-(typ+3)) <= nameMax ? (end-(typ+3)) : nameMax] = '\0';
+
+	return true;
+}
+
+bool GPRS::delBookEntry(int index)
+{
+	char indexStr[4];
+	itoa(index, indexStr, 10);
+	sim900_flush_serial();
+    sim900_send_cmd(F("AT+CPBW="));
+    sim900_send_cmd(indexStr);
+    return sim900_check_with_cmd(F("\r"),"OK\r\n",CMD);	
+}
+
+bool GPRS::addBookEntry(int index, const char* number, int type, const char *name)
+{
+	char num[4];
+
+    sim900_send_cmd(F("AT+CPBW="));
+	if( index != -1 )
+	{
+		itoa(index, num, 10);
+		sim900_send_cmd(num);
+	}
+	sim900_send_cmd(F(",\""));
+	sim900_send_cmd(number);
+	sim900_send_cmd(F("\","));
+	itoa(type, num, 10);
+	sim900_send_cmd(num);
+	sim900_send_cmd(F(",\""));
+	sim900_send_cmd(name);
+	sim900_send_cmd(F("\""));
+	return sim900_check_with_cmd(F("\r"),"OK\r\n",CMD);	
+}
+
 //Here is where we ask for APN configuration, with F() so we can save MEMORY
 bool GPRS::join(const __FlashStringHelper *apn, const __FlashStringHelper *userName, const __FlashStringHelper *passWord)
 {
