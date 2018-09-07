@@ -78,7 +78,7 @@ public:
      *  @returns
      *      
      */
-    void powerUpDown(uint8_t pin);  
+    void powerUpDown(uint8_t pin = 9);  
     
     /** power reset for SIM800 board 
      *  @param  pin (preconfigurated as OUTPUT)
