@@ -78,7 +78,7 @@ public:
      *  @returns
      *      
      */
-    void powerUpDown(uint8_t pin);  
+    void powerUpDown(uint8_t pin = 9);  
     
     /** power reset for SIM800 board 
      *  @param  pin (preconfigurated as OUTPUT)
@@ -241,6 +241,36 @@ public:
      *      false on error or because no active session
      */
 	bool cancelUSSDSession(void);
+	
+	/** Get number and name from the phone book
+     *  @param  index	phone book position
+     *  @param  number	buffer used to get the number
+     *  @param	type	buffer used to get the type of the number e.g. national(129/161), international(145), network specific(177)	refer to: http://m2msupport.net/m2msupport/sim-phonebook-at-commands/
+     *  @param  name	buffer used to get the name
+     *  @returns
+     *      true on success
+     *      false on error or entry didn't exist
+     */
+	bool getBookEntry(int index, char* number, int *type, char *name);
+	
+	/** Delete phone book entry
+	 *  @param  index	phone book position
+     *  @returns
+     *      true on success or entry didn't exist 
+     *      false on error
+     */
+	bool delBookEntry(int index);
+	
+	/** Add number and name to the phone book
+     *  @param  index	phone book position -1 for choosing the next free index
+     *  @param  number	buffer used to add the number
+     *  @param	type	buffer used to add the type of the number e.g. national(129/161), international(145), network specific(177)	refer to: http://m2msupport.net/m2msupport/sim-phonebook-at-commands/
+     *  @param  name	buffer used to add the name
+     *  @returns
+     *      true on success
+     *      false on error
+     */
+	bool addBookEntry(int index, const char* number, int type, const char *name);
 
 //////////////////////////////////////////////////////
 /// SLEEP
