@@ -90,8 +90,14 @@ public:
      *  @return true on success, false on fail
      */
     bool isNetworkRegistered(void);
-     
-     
+
+    /** Check SIM card status
+     *  @return 
+     *        true for SIM inserted
+     *        false for no SIM detected
+     */
+    bool checkSIMStatus(void);
+          
     /** send text SMS
      *  @param  *number phone number which SMS will be send to
      *  @param  *data   message that will be send to
@@ -386,8 +392,7 @@ public:
     unsigned long getIPnumber();	
     bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
     void AT_Bypass();	
-private:
-    bool checkSIMStatus(void);
+private:    
     uint32_t str_to_ip(const char* str);
     SoftwareSerial gprsSerial;
     static GPRS* inst;
