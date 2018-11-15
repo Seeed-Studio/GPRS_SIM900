@@ -102,8 +102,8 @@ public:
      *  @param  *number phone number which SMS will be send to
      *  @param  *data   message that will be send to
      *  @returns
-     *      false on success
-     *      true on error
+     *      true on success
+     *      false on error
      */
     bool sendSMS(const char* number, const char* data);
 
