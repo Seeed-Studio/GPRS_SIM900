@@ -965,6 +965,22 @@ int GPRS::send(const char * str, int len)
     return len;
 }
 
+boolean GPRS::send(const __FlashStringHelper* str)
+{
+    if(!sim900_check_with_cmd(F("AT+CIPSEND\r\n"),">",CMD)) {
+        return false;
+    }
+
+    sim900_send_cmd(str);
+    sim900_send_End_Mark();
+
+    if(!sim900_wait_for_resp("SEND OK\r\n", DATA, DEFAULT_TIMEOUT, DEFAULT_INTERCHAR_TIMEOUT)) {
+        return false;
+    }
+
+    return true;
+}
+
 boolean GPRS::send(const char * str)
 {
 	if(!sim900_check_with_cmd(F("AT+CIPSEND\r\n"),">",CMD)) {
