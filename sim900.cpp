@@ -97,7 +97,6 @@ uint16_t sim900_read_string_until(char *buffer, int count, char *pattern, unsign
     uint16_t i = 0;
     uint8_t sum = 0;
     uint8_t len = strlen(pattern);
-    bool is_timeout = false;
     unsigned long timerStart, prevChar;
     
     timerStart = millis();
