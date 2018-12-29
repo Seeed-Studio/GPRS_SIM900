@@ -389,6 +389,68 @@ public:
     char* getIPAddress();
     unsigned long getIPnumber();	
     bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
+
+//////////////////////////////////////////////////////
+/// HTTP
+/// the implementation is based on information from SIM900_AT Command Manual_ V1.03
+//////////////////////////////////////////////////////
+    /** opens bearer: set parameters, and open it, use closeBearer() to close again
+     *  1 AT+SAPBR=3,1,"Contype","GPRS"
+     *  2 AT+SAPBR=3,1,"APN","<apn>"
+     *  3 AT+SAPBR =1,1
+     *  @param apn: access point name
+     *  TODO: maybe add parameters for user name and password as well, for me it is working without them
+     *
+     *  @returns true if successful, false if there was a timeout
+     */
+    bool openBearer(const __FlashStringHelper *apn);
+
+    /** closes bearer, use openBearer() to open:
+     *  1 AT+SAPBR=0,1
+     *  @returns true if successful, false if there was a timeout
+     */
+    bool closeBearer(void);
+
+    /** initializes HTTP service by issuing AT+HTTPINIT command
+     *  @returns true if successful, false if an error occurred
+     */
+    bool httpInitialize(void);
+
+    /** terminates HTTP service by issuing AT+HTTPTERM command
+     *  @returns true if successful, false if an error occurred
+     */
+    bool httpTerminate(void);
+
+    /** send passed string as HTTP GET request, requires openBearer() to be called beforehand:
+     *  1 AT+HTTPPARA=\"CID\",1
+     *  2 AT+HTTPPARA=\"URL\",\"<url>\"
+     *  3 AT+HTTPACTION=0
+     *  @param url: "http://'server'/'path':'tcpPort'"
+     *                "server": FQDN or IP-address
+     *                "path": path of file or directory
+     *                "tcpPort": default value is 80. Refer to
+     *                "IETF-RFC 2616".
+     *               e.g. "http://m2msupport.net/m2msupport/test.php"
+     *
+     *  @returns amount of bytes the server returned (may also be 0), -1 indicates a
+     *  an error in executing the AT* commands or if the webserver returned a status
+     *  code != 200 (OK).
+     *  The data may be fetched using httpReadResponseData
+     */
+    int16_t httpSendGetRequest(const __FlashStringHelper *url);
+
+    /** read data from HTTP GET response
+     *  1 AT+HTTPREAD
+     *  @param buffer: buffer where the data will be copied to (zero-terminated)
+     *  @param bufferSize: size of the passed buffer
+     *
+     *  @returns true if successful, false if there was a timeout or the passed buffer was too small
+     */
+    bool httpReadResponseData(char * buffer, uint16_t bufferSize);
+
+//////////////////////////////////////////////////////
+/// others
+//////////////////////////////////////////////////////
     void AT_Bypass();	
 private:    
     uint32_t str_to_ip(const char* str);

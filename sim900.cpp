@@ -92,7 +92,7 @@ void sim900_read_buffer(char *buffer, int count, unsigned int timeout, unsigned 
     }
 }
 
-char * sim900_read_string_until(char *buffer, uint16_t count, char *pattern, unsigned int timeout, unsigned int chartimeout)
+char * sim900_read_string_until(char *buffer, uint16_t count, const char *pattern, unsigned int timeout, unsigned int chartimeout)
 {
     uint16_t i = 0;
     uint8_t sum = 0;

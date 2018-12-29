@@ -41,6 +41,7 @@ Applications
 + Send SMS and read SMS
 + AT Command Test
 + TCP Connection Test 
++ Issue HTTP GET requests
 
 Getting Started
 ===
@@ -51,6 +52,7 @@ Make sure that two libraries ([GPRS_Shield](https://github.com/Seeed-Studio/GPRS
 + GPRS_LoopHandle —— answer the call & read the message.
 + GPRS_SMSread —— another way to read a message. 
 + GPRS_TCPConnection —— build a TCP connection and read the content from the specified website. 
++ GRPS_HTTP_GET —— issue a HTTP GET request using native HTTP support of module
 
 ----
 

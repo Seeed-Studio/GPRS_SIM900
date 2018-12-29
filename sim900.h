@@ -59,7 +59,7 @@ void  sim900_read_buffer(char* buffer,int count,  unsigned int timeout = DEFAULT
  *   e.g. buffer contains "abc123", pattern is "123" then the pointer points to the '1' character
  *   It returns NULL if a timeout occured or the passed buffer is full and the pattern was not found
  */
-char * sim900_read_string_until(char *buffer, uint16_t count, char *pattern, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+char * sim900_read_string_until(char *buffer, uint16_t count, const char *pattern, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
 void  sim900_clean_buffer(char* buffer, int count);
 void  sim900_send_byte(uint8_t data);
 void  sim900_send_char(const char c);
