@@ -61,7 +61,6 @@ public:
     /** initialize GPRS module including SIM card check & signal strength
      *  @return true if connected, false otherwise
      */
-
     bool init(void);
 
    
@@ -113,7 +112,6 @@ public:
      *      -1 on error
      *       0 - there is no SMS with specified status (UNREAD)
      */
-
 	char isSMSunread();
     
     /** read SMS, phone and date if getting a SMS message. It changes SMS status to READ 
@@ -298,10 +296,9 @@ public:
 //////////////////////////////////////////////////////
 /// GPRS
 //////////////////////////////////////////////////////  
-   /**  Connect the GPRS module to the network.
+    /**  Connect the GPRS module to the network.
      *  @return true if connected, false otherwise
      */
-	 
     bool join(const __FlashStringHelper *apn = 0, const __FlashStringHelper *userName = 0, const __FlashStringHelper *passWord = 0);
 
     /** Disconnect the GPRS module from the network
@@ -337,19 +334,16 @@ public:
     int readable(void);
 
     /** wait a few time to check if GPRS module is readable or not
-     *  @param socket socket
      *  @param wait_time time of waiting
      */
     int wait_readable(int wait_time);
 
     /** wait a few time to check if GPRS module is writeable or not
-     *  @param socket socket
      *  @param wait_time time of waiting
      */
     int wait_writeable(int req_size);
 
     /** send data to socket
-     *  @param socket socket
      *  @param str string to be sent
      *  @param len string length
      *  @returns return bytes that actually been send
@@ -363,14 +357,12 @@ public:
     boolean send(const __FlashStringHelper* str);
 
     /** send data to socket without AT+CIPSEND=len
-     *  @param socket socket
      *  @param str string to be sent
      *  @returns true if successful
      */
     boolean send(const char * str);
 	
     /** read data from socket
-     *  @param socket socket
      *  @param buf buffer that will store the data read from socket
      *  @param len string length need to read from socket
      *  @returns bytes that actually read
