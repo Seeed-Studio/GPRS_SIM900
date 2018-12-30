@@ -50,7 +50,16 @@ int   sim900_check_readable();
 int   sim900_wait_readable(int wait_time);
 void  sim900_flush_serial();
 void  sim900_read_buffer(char* buffer,int count,  unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
-uint16_t sim900_read_string_until(char *buffer, uint16_t count, char *pattern, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
+
+/** read from serial line until the string indicated by pattern was found
+ *  @param buffer buffer where the read bytes are saved to (including the pattern)
+ *  @param count size of the passed buffer
+ *  @pattern the pattern to search for, ATTENTION: MUST be \0 terminated
+ *  @returns pointer to buffer where the first char of pattern was found,
+ *   e.g. buffer contains "abc123", pattern is "123" then the pointer points to the '1' character
+ *   It returns NULL if a timeout occured or the passed buffer is full and the pattern was not found
+ */
+char * sim900_read_string_until(char *buffer, uint16_t count, char *pattern, unsigned int timeout = DEFAULT_TIMEOUT, unsigned int chartimeout = DEFAULT_INTERCHAR_TIMEOUT);
 void  sim900_clean_buffer(char* buffer, int count);
 void  sim900_send_byte(uint8_t data);
 void  sim900_send_char(const char c);
