@@ -425,11 +425,11 @@ public:
      *  1 AT+HTTPPARA=\"CID\",1
      *  2 AT+HTTPPARA=\"URL\",\"<url>\"
      *  3 AT+HTTPACTION=0
-     *  @param url: "http://'server'/'path':'tcpPort'"
+     *  @param url: "http://'server':'tcpPort'/'path'"
      *                "server": FQDN or IP-address
-     *                "path": path of file or directory
      *                "tcpPort": default value is 80. Refer to
      *                "IETF-RFC 2616".
+     *                "path": path of file or directory
      *               e.g. "http://m2msupport.net/m2msupport/test.php"
      *
      *  @returns amount of bytes the server returned (may also be 0), -1 indicates a
