@@ -896,15 +896,19 @@ bool GPRS::connect(Protocol ptl,const __FlashStringHelper *host, const __FlashSt
 
 bool GPRS::is_connected(void)
 {
-    char resp[96];
+    // the largest possible value here is:
+    // OK\r\n
+    // STATE: SERVER LISTENING\r\n
+    // 40 byte should be fine
+    char resp[40];
     sim900_send_cmd(F("AT+CIPSTATUS\r\n"));
     sim900_read_buffer(resp,sizeof(resp),DEFAULT_TIMEOUT);
-    if(NULL != strstr(resp,"CONNECTED")) {
-        //+CIPSTATUS: 1,0,"TCP","216.52.233.120","80","CONNECTED"
+    if(NULL != strstr(resp,"STATE: CONNECT OK")) {
+        // OK\r\nSTATE: CONNECT OK
         return true;
     } else {
-        //+CIPSTATUS: 1,0,"TCP","216.52.233.120","80","CLOSED"
-        //+CIPSTATUS: 0,,"","","","INITIAL"
+        // e.g:
+        // OK\r\nSTATE: TCP CLOSED
         return false;
     }
 }
@@ -959,6 +963,22 @@ int GPRS::send(const char * str, int len)
         }        
     }
     return len;
+}
+
+boolean GPRS::send(const __FlashStringHelper* str)
+{
+    if(!sim900_check_with_cmd(F("AT+CIPSEND\r\n"),">",CMD)) {
+        return false;
+    }
+
+    sim900_send_cmd(str);
+    sim900_send_End_Mark();
+
+    if(!sim900_wait_for_resp("SEND OK\r\n", DATA, DEFAULT_TIMEOUT, DEFAULT_INTERCHAR_TIMEOUT)) {
+        return false;
+    }
+
+    return true;
 }
 
 boolean GPRS::send(const char * str)

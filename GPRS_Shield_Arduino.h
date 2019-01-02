@@ -357,6 +357,12 @@ public:
     int send(const char * str, int len);
 
     /** send data to socket without AT+CIPSEND=len
+     *  @param str string to be sent (from progmem)
+     *  @returns true if successful, false if a timeout occured
+     */
+    boolean send(const __FlashStringHelper* str);
+
+    /** send data to socket without AT+CIPSEND=len
      *  @param socket socket
      *  @param str string to be sent
      *  @returns true if successful

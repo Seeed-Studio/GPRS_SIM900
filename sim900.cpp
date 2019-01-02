@@ -92,12 +92,11 @@ void sim900_read_buffer(char *buffer, int count, unsigned int timeout, unsigned 
     }
 }
 
-uint16_t sim900_read_string_until(char *buffer, int count, char *pattern, unsigned int timeout, unsigned int chartimeout)
+uint16_t sim900_read_string_until(char *buffer, uint16_t count, char *pattern, unsigned int timeout, unsigned int chartimeout)
 {
     uint16_t i = 0;
     uint8_t sum = 0;
     uint8_t len = strlen(pattern);
-    bool is_timeout = false;
     unsigned long timerStart, prevChar;
     
     timerStart = millis();
