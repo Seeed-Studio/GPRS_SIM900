@@ -1095,6 +1095,9 @@ bool GPRS::getLocation(const __FlashStringHelper *apn, float *longitude, float *
 
 bool GPRS::openBearer(const __FlashStringHelper *apn)
 {
+    const uint8_t checkBearerRetryCount = 3;
+    int i;
+
     //send AT+SAPBR=3,1,"Contype","GPRS"
     if (sim900_check_with_cmd(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"),"OK\r\n", CMD) == false)
         return false;
@@ -1112,11 +1115,80 @@ bool GPRS::openBearer(const __FlashStringHelper *apn)
     if (sim900_check_with_cmd(F("AT+SAPBR=1,1\r\n"),"OK\r\n", CMD) == false)
         return false;
 
+    for(i = 0; i < checkBearerRetryCount; i++)
+    {
+        // 3 means "closed"
+        uint8_t bearerStatus = 3;
+        // 1 means "connected"
+        queryBearer(&bearerStatus);
+        if (bearerStatus == 1)
+            break;
+    }
+
+    if (i >= checkBearerRetryCount)
+        return false;
+
     return true;
+}
+
+bool GPRS::queryBearer(uint8_t * bearerStatus)
+{
+    char receiveBuffer[32];
+    char * commaPtr;
+
+    // send AT+SAPBR=2,1 and read "+SAPBR"
+    if (sim900_check_with_cmd(F("AT+SAPBR=2,1\r\n"),"+SAPBR:", DATA) == false)
+        return false;
+
+    sim900_clean_buffer(receiveBuffer, sizeof(receiveBuffer));
+
+    // check response which looks like:
+    // +SAPBR: <cid>,<Status>,<IP_Addr>\r\nOK
+
+    // read cid (always 1)
+    if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "1,") == NULL)
+        return false;
+
+    // read until next comma -> status
+    commaPtr = sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), ",");
+    if (commaPtr == NULL)
+        return false;
+
+    // replace comma with string termination
+    *commaPtr = '\0';
+
+    // now extract status
+    *bearerStatus = (uint8_t)atol(receiveBuffer);
+
+    // only check for ip address if we are connected (=1)
+    if (*bearerStatus == 1)
+    {
+        char * endOfIpAddress = NULL;
+
+        // read ip address, which is enclosed in '"', so read first '"'
+        if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "\"") == NULL)
+            return false;
+
+        // read second '"'
+        endOfIpAddress = sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "\"");
+        if (endOfIpAddress == NULL)
+            return false;
+
+        *endOfIpAddress = '\0';
+
+        strncpy(ip_string, receiveBuffer, sizeof(ip_string));
+        _ip = str_to_ip(ip_string);
+    }
+
+    // flush rest of data which should be "\r\nOK"
+    sim900_flush_serial();
+
+    return true;;
 }
 
 bool GPRS::closeBearer(void)
 {
+    //TODO maybe also call queryBearer() here and check if it really was closed (as in openBearer)
     return sim900_check_with_cmd(F("AT+SAPBR=0,1\r\n"),"OK\r\n", CMD);
 }
 

@@ -452,8 +452,22 @@ public:
 /// others
 //////////////////////////////////////////////////////
     void AT_Bypass();	
-private:    
+private:
+    /** queries bearer: sends AT+SAPBR=2,1 and checks returned data, sets member variables _ip and ip_string
+     *  if we are connected
+     *  @param bearerStatus: output parameter, status of the bearer is written to this pointer:
+     *   0 bearer is connecting
+     *   1 bearer is connected
+     *   2 bearer is closing
+     *   3 bearer is closed
+     *  @returns true if successful, false if something was wrong
+     *
+     *  NOTE: maybe made public if desperately required (should not be required however)
+     */
+    bool queryBearer(uint8_t * bearerStatus);
+
     uint32_t str_to_ip(const char* str);
+
     SoftwareSerial gprsSerial;
     static GPRS* inst;
     uint32_t _ip;
