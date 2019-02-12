@@ -92,11 +92,12 @@ void sim900_read_buffer(char *buffer, int count, unsigned int timeout, unsigned 
     }
 }
 
-uint16_t sim900_read_string_until(char *buffer, uint16_t count, char *pattern, unsigned int timeout, unsigned int chartimeout)
+char * sim900_read_string_until(char *buffer, uint16_t count, const char *pattern, unsigned int timeout, unsigned int chartimeout)
 {
     uint16_t i = 0;
     uint8_t sum = 0;
     uint8_t len = strlen(pattern);
+    char * foundPtr = NULL;
     unsigned long timerStart, prevChar;
     
     timerStart = millis();
@@ -107,11 +108,19 @@ uint16_t sim900_read_string_until(char *buffer, uint16_t count, char *pattern, u
             DEBUG(c);
             prevChar = millis();
             buffer[i++] = c;
-            if(i >= count)break;
+
             sum = (c==pattern[sum]) ? sum+1 : 0;
-            if(sum == len)break;
+
+            if(sum == len){
+                foundPtr = &(buffer[i - len]);
+                break;
+            }
         }
-        if(i >= count)break;
+
+        if(i >= count){
+            break;
+        }
+
         if ((unsigned long) (millis() - timerStart) > timeout * 1000UL) {
             break;
         }
@@ -120,7 +129,8 @@ uint16_t sim900_read_string_until(char *buffer, uint16_t count, char *pattern, u
             break;
         }
     }
-    return (uint16_t)(i - 1);
+
+    return foundPtr;
 }
 
 

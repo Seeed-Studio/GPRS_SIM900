@@ -1014,6 +1014,8 @@ bool GPRS::isListening(void)
 	return gprsSerial.isListening();
 }
 
+
+
 uint32_t GPRS::str_to_ip(const char* str)
 {
     uint32_t ip = 0;
@@ -1032,7 +1034,7 @@ uint32_t GPRS::str_to_ip(const char* str)
 
 char* GPRS::getIPAddress()
 {
-    //I have already a buffer with ip_string: snprintf(ip_string, sizeof(ip_string), "%d.%d.%d.%d", (_ip>>24)&0xff,(_ip>>16)&0xff,(_ip>>8)&0xff,_ip&0xff); 
+    //I have already a buffer with ip_string: snprintf(ip_string, sizeof(ip_string), "%d.%d.%d.%d", (_ip>>24)&0xff,(_ip>>16)&0xff,(_ip>>8)&0xff,_ip&0xff);
     return ip_string;
 }
 
@@ -1054,30 +1056,22 @@ unsigned long GPRS::getIPnumber()
 */
 
 bool GPRS::getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude)
-{    	
+{
 	int i = 0;
     char gprsBuffer[80];
 	char buffer[20];
     char *s;
-    
-	//send AT+SAPBR=3,1,"Contype","GPRS"
-	sim900_check_with_cmd(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"),"OK\r\n",CMD);
-	//sen AT+SAPBR=3,1,"APN","GPRS_APN"
-	sim900_send_cmd(F("AT+SAPBR=3,1,\"APN\",\""));
-	if (apn) {
-      sim900_send_cmd(apn);
-    }
-    sim900_check_with_cmd(F("\"\r"),"OK\r\n",CMD);
-	//send AT+SAPBR =1,1
-	sim900_check_with_cmd(F("AT+SAPBR=1,1\r"),"OK\r\n",CMD);
-	
+
+    if (openBearer(apn) == false)
+        return false;
+
 	//AT+CIPGSMLOC=1,1
 	sim900_flush_serial();
 	sim900_send_cmd(F("AT+CIPGSMLOC=1,1\r"));
-	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));	
+	sim900_clean_buffer(gprsBuffer,sizeof(gprsBuffer));
 	sim900_read_buffer(gprsBuffer,sizeof(gprsBuffer),2*DEFAULT_TIMEOUT,6*DEFAULT_INTERCHAR_TIMEOUT);
 	//Serial.println(gprsBuffer);
-    
+
 	if(NULL != ( s = strstr(gprsBuffer,"+CIPGSMLOC:")))
 	{
 		s = strstr((char *)s, ",");
@@ -1088,15 +1082,211 @@ bool GPRS::getLocation(const __FlashStringHelper *apn, float *longitude, float *
 			buffer[i++]=*s;
 		buffer[i] = 0;
 		*longitude = atof(buffer);
-		       
+
 		i=0;
 		while(*(++s) !=  ',')
 			buffer[i++]=*s;
 		buffer[i] = 0;
-		*latitude = atof(buffer);            
+		*latitude = atof(buffer);
 		return true;
 	}
 	return false;
+}
+
+bool GPRS::openBearer(const __FlashStringHelper *apn)
+{
+    const uint8_t checkBearerRetryCount = 3;
+    int i;
+
+    //send AT+SAPBR=3,1,"Contype","GPRS"
+    if (sim900_check_with_cmd(F("AT+SAPBR=3,1,\"Contype\",\"GPRS\"\r"),"OK\r\n", CMD) == false)
+        return false;
+
+    //send AT+SAPBR=3,1,"APN","<apn>"
+    sim900_send_cmd(F("AT+SAPBR=3,1,\"APN\",\""));
+    if (apn) {
+      sim900_send_cmd(apn);
+    }
+
+    if (sim900_check_with_cmd(F("\"\r"),"OK\r\n", CMD) == false)
+        return false;
+
+    //send AT+SAPBR =1,1
+    if (sim900_check_with_cmd(F("AT+SAPBR=1,1\r\n"),"OK\r\n", CMD) == false)
+        return false;
+
+    for(i = 0; i < checkBearerRetryCount; i++)
+    {
+        // 3 means "closed"
+        uint8_t bearerStatus = 3;
+        // 1 means "connected"
+        queryBearer(&bearerStatus);
+        if (bearerStatus == 1)
+            break;
+    }
+
+    if (i >= checkBearerRetryCount)
+        return false;
+
+    return true;
+}
+
+bool GPRS::queryBearer(uint8_t * bearerStatus)
+{
+    char receiveBuffer[32];
+    char * commaPtr;
+
+    // send AT+SAPBR=2,1 and read "+SAPBR"
+    if (sim900_check_with_cmd(F("AT+SAPBR=2,1\r\n"),"+SAPBR:", DATA) == false)
+        return false;
+
+    sim900_clean_buffer(receiveBuffer, sizeof(receiveBuffer));
+
+    // check response which looks like:
+    // +SAPBR: <cid>,<Status>,<IP_Addr>\r\nOK
+
+    // read cid (always 1)
+    if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "1,") == NULL)
+        return false;
+
+    // read until next comma -> status
+    commaPtr = sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), ",");
+    if (commaPtr == NULL)
+        return false;
+
+    // replace comma with string termination
+    *commaPtr = '\0';
+
+    // now extract status
+    *bearerStatus = (uint8_t)atol(receiveBuffer);
+
+    // only check for ip address if we are connected (=1)
+    if (*bearerStatus == 1)
+    {
+        char * endOfIpAddress = NULL;
+
+        // read ip address, which is enclosed in '"', so read first '"'
+        if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "\"") == NULL)
+            return false;
+
+        // read second '"'
+        endOfIpAddress = sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "\"");
+        if (endOfIpAddress == NULL)
+            return false;
+
+        *endOfIpAddress = '\0';
+
+        strncpy(ip_string, receiveBuffer, sizeof(ip_string));
+        _ip = str_to_ip(ip_string);
+    }
+
+    // flush rest of data which should be "\r\nOK"
+    sim900_flush_serial();
+
+    return true;;
+}
+
+bool GPRS::closeBearer(void)
+{
+    //TODO maybe also call queryBearer() here and check if it really was closed (as in openBearer)
+    return sim900_check_with_cmd(F("AT+SAPBR=0,1\r\n"),"OK\r\n", CMD);
+}
+
+bool GPRS::httpInitialize(void)
+{
+    return sim900_check_with_cmd(F("AT+HTTPINIT\r\n"), "OK", CMD);
+}
+
+bool GPRS::httpTerminate(void)
+{
+    return sim900_check_with_cmd(F("AT+HTTPTERM\r\n"), "OK", CMD);
+}
+
+int16_t GPRS::httpSendGetRequest(const __FlashStringHelper* url)
+{
+    char receiveBuffer[32];
+    char httpStatusCode[4];
+    char * commaPtr = NULL;
+
+    // 1 AT+HTTPPARA=\"CID\",1
+    if (sim900_check_with_cmd(F("AT+HTTPPARA=\"CID\",1\r\n"), "OK", CMD) == false)
+        return -1;
+
+    // 2 AT+HTTPPARA=\"URL\",\"<url>\"
+    sim900_send_cmd(F("AT+HTTPPARA=\"URL\",\""));
+    sim900_send_cmd(url);
+    if (sim900_check_with_cmd(F("\"\r\n"), "OK", CMD) == false)
+        return -1;
+
+    // 3 AT+HTTPACTION=0
+    if (sim900_check_with_cmd(F("AT+HTTPACTION=0\r\n"), "OK", DATA) == false)
+        return -1;
+
+    // fetch additional data which looks like +HTTPACTION: <Method>,<StatusCode>,<DataLen>
+    // where "Method" is always 0 (GET request)
+    sim900_clean_buffer(receiveBuffer, sizeof(receiveBuffer));
+    if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "+HTTPACTION: 0,") == NULL)
+        return -1;
+
+    sim900_clean_buffer(receiveBuffer, sizeof(receiveBuffer));
+    // let's not waste time: request should be finished after 1000ms
+    sim900_read_buffer(receiveBuffer, sizeof(receiveBuffer), 1, 1000);
+
+    sim900_clean_buffer(httpStatusCode, sizeof(httpStatusCode));
+    //status codes are always 3 chars
+    strncpy(httpStatusCode, receiveBuffer, 3);
+
+    if (strcmp(httpStatusCode, "200") != 0)
+        return -1;
+
+    // search for additional comma, DataLen comes after that
+    commaPtr = strrchr(receiveBuffer, ',');
+    if (commaPtr == NULL)
+        return -1;
+
+    // step over comma
+    commaPtr++;
+
+    return atol(commaPtr);
+}
+
+bool GPRS::httpReadResponseData(char* buffer, uint16_t bufferSize)
+{
+    char receiveBuffer[32];
+    char * charFoundPtr = NULL;
+
+    // issue command
+    if (sim900_check_with_cmd(F("AT+HTTPREAD\r\n"), "+HTTPREAD:", DATA) == false)
+        return false;
+
+    sim900_clean_buffer(receiveBuffer, sizeof(receiveBuffer));
+
+    // analyzing response which looks like:
+    //+HTTPREAD:<data_len>
+    //<data>
+    //OK
+
+    // read first line of response, we ignore the data length as httpSendGetRequest already
+    // returns this information
+    if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "\r\n") == false)
+        return false;
+
+    sim900_clean_buffer(buffer, bufferSize);
+
+    // read HTTP response data and the following "OK"
+    // Note: at this point the response was already received (via GPRS), this is just
+    // reading the data from the module. This should be done in 500ms
+    charFoundPtr = sim900_read_string_until(buffer, bufferSize, "\r\nOK", 1, 500);
+
+    if (charFoundPtr == NULL)
+        return false;
+
+    // write \0 to index where the pattern was found to terminate the received HTTP response data
+    *charFoundPtr = '\0';
+
+    sim900_flush_serial();
+
+    return true;
 }
 
 void GPRS::AT_Bypass()

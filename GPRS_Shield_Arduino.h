@@ -61,7 +61,6 @@ public:
     /** initialize GPRS module including SIM card check & signal strength
      *  @return true if connected, false otherwise
      */
-
     bool init(void);
 
    
@@ -113,7 +112,6 @@ public:
      *      -1 on error
      *       0 - there is no SMS with specified status (UNREAD)
      */
-
 	char isSMSunread();
     
     /** read SMS, phone and date if getting a SMS message. It changes SMS status to READ 
@@ -298,10 +296,9 @@ public:
 //////////////////////////////////////////////////////
 /// GPRS
 //////////////////////////////////////////////////////  
-   /**  Connect the GPRS module to the network.
+    /**  Connect the GPRS module to the network.
      *  @return true if connected, false otherwise
      */
-	 
     bool join(const __FlashStringHelper *apn = 0, const __FlashStringHelper *userName = 0, const __FlashStringHelper *passWord = 0);
 
     /** Disconnect the GPRS module from the network
@@ -337,19 +334,16 @@ public:
     int readable(void);
 
     /** wait a few time to check if GPRS module is readable or not
-     *  @param socket socket
      *  @param wait_time time of waiting
      */
     int wait_readable(int wait_time);
 
     /** wait a few time to check if GPRS module is writeable or not
-     *  @param socket socket
      *  @param wait_time time of waiting
      */
     int wait_writeable(int req_size);
 
     /** send data to socket
-     *  @param socket socket
      *  @param str string to be sent
      *  @param len string length
      *  @returns return bytes that actually been send
@@ -363,14 +357,12 @@ public:
     boolean send(const __FlashStringHelper* str);
 
     /** send data to socket without AT+CIPSEND=len
-     *  @param socket socket
      *  @param str string to be sent
      *  @returns true if successful
      */
     boolean send(const char * str);
 	
     /** read data from socket
-     *  @param socket socket
      *  @param buf buffer that will store the data read from socket
      *  @param len string length need to read from socket
      *  @returns bytes that actually read
@@ -397,9 +389,85 @@ public:
     char* getIPAddress();
     unsigned long getIPnumber();	
     bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
+
+//////////////////////////////////////////////////////
+/// HTTP
+/// the implementation is based on information from SIM900_AT Command Manual_ V1.03
+//////////////////////////////////////////////////////
+    /** opens bearer: set parameters, and open it, use closeBearer() to close again
+     *  1 AT+SAPBR=3,1,"Contype","GPRS"
+     *  2 AT+SAPBR=3,1,"APN","<apn>"
+     *  3 AT+SAPBR =1,1
+     *  @param apn: access point name
+     *  TODO: maybe add parameters for user name and password as well, for me it is working without them
+     *
+     *  @returns true if successful, false if there was a timeout
+     */
+    bool openBearer(const __FlashStringHelper *apn);
+
+    /** closes bearer, use openBearer() to open:
+     *  1 AT+SAPBR=0,1
+     *  @returns true if successful, false if there was a timeout
+     */
+    bool closeBearer(void);
+
+    /** initializes HTTP service by issuing AT+HTTPINIT command
+     *  @returns true if successful, false if an error occurred
+     */
+    bool httpInitialize(void);
+
+    /** terminates HTTP service by issuing AT+HTTPTERM command
+     *  @returns true if successful, false if an error occurred
+     */
+    bool httpTerminate(void);
+
+    /** send passed string as HTTP GET request, requires openBearer() to be called beforehand:
+     *  1 AT+HTTPPARA=\"CID\",1
+     *  2 AT+HTTPPARA=\"URL\",\"<url>\"
+     *  3 AT+HTTPACTION=0
+     *  @param url: "http://'server':'tcpPort'/'path'"
+     *                "server": FQDN or IP-address
+     *                "tcpPort": default value is 80. Refer to
+     *                "IETF-RFC 2616".
+     *                "path": path of file or directory
+     *               e.g. "http://m2msupport.net/m2msupport/test.php"
+     *
+     *  @returns amount of bytes the server returned (may also be 0), -1 indicates a
+     *  an error in executing the AT* commands or if the webserver returned a status
+     *  code != 200 (OK).
+     *  The data may be fetched using httpReadResponseData
+     */
+    int16_t httpSendGetRequest(const __FlashStringHelper *url);
+
+    /** read data from HTTP GET response
+     *  1 AT+HTTPREAD
+     *  @param buffer: buffer where the data will be copied to (zero-terminated)
+     *  @param bufferSize: size of the passed buffer
+     *
+     *  @returns true if successful, false if there was a timeout or the passed buffer was too small
+     */
+    bool httpReadResponseData(char * buffer, uint16_t bufferSize);
+
+//////////////////////////////////////////////////////
+/// others
+//////////////////////////////////////////////////////
     void AT_Bypass();	
-private:    
+private:
+    /** queries bearer: sends AT+SAPBR=2,1 and checks returned data, sets member variables _ip and ip_string
+     *  if we are connected
+     *  @param bearerStatus: output parameter, status of the bearer is written to this pointer:
+     *   0 bearer is connecting
+     *   1 bearer is connected
+     *   2 bearer is closing
+     *   3 bearer is closed
+     *  @returns true if successful, false if something was wrong
+     *
+     *  NOTE: maybe made public if desperately required (should not be required however)
+     */
+    bool queryBearer(uint8_t * bearerStatus);
+
     uint32_t str_to_ip(const char* str);
+
     SoftwareSerial gprsSerial;
     static GPRS* inst;
     uint32_t _ip;

@@ -48,6 +48,12 @@ listen	KEYWORD2
 isListening	KEYWORD2
 getIPAddress	KEYWORD2
 getLocation	KEYWORD2
+openBearer	KEYWORD2
+closeBearer	KEYWORD2
+httpInitialize	KEYWORD2
+httpTerminate	KEYWORD2
+httpSendGetRequest	KEYWORD2
+httpReadResponseData	KEYWORD2
 AT_Bypass	KEYWORD2
 checkSIMStatus	KEYWORD2
 str_to_ip	KEYWORD2
