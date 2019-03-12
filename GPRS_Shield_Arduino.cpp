@@ -1192,6 +1192,27 @@ bool GPRS::closeBearer(void)
     return sim900_check_with_cmd(F("AT+SAPBR=0,1\r\n"),"OK\r\n", CMD);
 }
 
+bool GPRS::ntpSyncDateTime(int8_t timezone)
+{
+    // e.g. "-105\0", this is not a valid value to pass to the SIM module, but we need to make sure not
+    // to cross boundaries of the char array
+    char timezoneString[5] = {'\0'};
+
+    if (sim900_check_with_cmd(F("AT+CNTPCID=1\r\n"), "OK\r\n", CMD) == false)
+        return false;
+
+    sim900_send_cmd(F("AT+CNTP=\"pool.ntp.org\","));
+
+    itoa(timezone, timezoneString, 10);
+
+    sim900_send_cmd(timezoneString);
+
+    if (sim900_check_with_cmd(F("\r\n"), "OK\r\n", CMD) == false)
+        return false;
+
+    return sim900_check_with_cmd(F("AT+CNTP\r\n"), "+CNTP: 1", CMD);
+}
+
 bool GPRS::httpInitialize(void)
 {
     return sim900_check_with_cmd(F("AT+HTTPINIT\r\n"), "OK", CMD);
