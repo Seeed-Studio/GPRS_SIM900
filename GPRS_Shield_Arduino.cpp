@@ -1236,7 +1236,7 @@ int16_t GPRS::httpSendGetRequest(const __FlashStringHelper* url, const __FlashSt
     // fetch additional data which looks like +HTTPACTION: <Method>,<StatusCode>,<DataLen>
     // where "Method" is always 0 (GET request)
     sim900_clean_buffer(receiveBuffer, sizeof(receiveBuffer));
-    if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "+HTTPACTION: 0,") == NULL)
+    if (sim900_read_string_until(receiveBuffer, sizeof(receiveBuffer), "+HTTPACTION: 0,", 15, 15000) == NULL)
         return -1;
 
     sim900_clean_buffer(receiveBuffer, sizeof(receiveBuffer));
