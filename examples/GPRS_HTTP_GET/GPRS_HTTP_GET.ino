@@ -12,12 +12,43 @@
 
 #define RETRY_COUNT 5
 
+
+#define QUERY_PARAM_COUNT 2
+
+static const char url[] PROGMEM = {"http://postman-echo.com"};
+
+static const char path[] PROGMEM = {"/get"};
+
+static const char paramKey1[] PROGMEM = {"foo1"};
+static const char paramKey2[] PROGMEM = {"foo2"};
+
+const __FlashStringHelper* const queryParamKeys[QUERY_PARAM_COUNT] PROGMEM =
+{
+    (const __FlashStringHelper*)paramKey1,
+    (const __FlashStringHelper*)paramKey2,
+};
+
+//don't waste any RAM, pack it!
+typedef struct __attribute__((__packed__))
+{
+    char paramValue1[5];
+    char paramValue2[5];
+
+    char * const array[QUERY_PARAM_COUNT] =
+    {
+            paramValue1,
+            paramValue2
+    };
+} queryParamValues_t;
+
+static queryParamValues_t queryParamValues;
+
 GPRS gprs(PIN_TX, PIN_RX, BAUDRATE);
 
 //TODO adjust this
 const char apn[] PROGMEM = {"internet.telekom"};
 
-char responseBuffer[32];
+char responseBuffer[512];
 
 void setup(){
   int i;
@@ -85,8 +116,42 @@ void setup(){
 
   for (i = 0; i < RETRY_COUNT; i++)
   {
-      Serial.println(F("sending HTTP GET request to http://m2msupport.net/m2msupport/test.php ..."));
+      Serial.println(F("sending compile time constructed HTTP GET request to http://m2msupport.net/m2msupport/test.php ..."));
       if (gprs.httpSendGetRequest(F("http://m2msupport.net"), F("/m2msupport/test.php")) != -1)
+          break;
+  }
+
+  if (i < RETRY_COUNT)
+      Serial.println(F("OK"));
+  else
+  {
+      Serial.println(F("failed"));
+      return;
+  }
+
+  Serial.println(F("fetching HTTP GET response ..."));
+  if (gprs.httpReadResponseData(responseBuffer, sizeof(responseBuffer)) != false)
+  {
+      Serial.println(F("OK, received data:"));
+      Serial.println(responseBuffer);
+  }
+  else
+  {
+      Serial.println(F("failed"));
+      return;
+  }
+
+  strcpy (queryParamValues.paramValue1, "bar1");
+  strcpy (queryParamValues.paramValue2, "bar2");
+  for (i = 0; i < RETRY_COUNT; i++)
+  {
+      Serial.println(F("sending runtime constructed HTTP GET request http://postman-echo.com/get?foo1=bar1&foo2=bar2..."));
+      if (gprs.httpSendGetRequest((const __FlashStringHelper *)url,
+              "",
+              (const __FlashStringHelper *)path,
+              QUERY_PARAM_COUNT,
+              queryParamKeys,
+              queryParamValues.array) != -1)
           break;
   }
 
