@@ -24,6 +24,7 @@ void setup(){
 
   Serial.begin(9600);
 
+
   Serial.println(F("Start HTTP demonstration, yeah!"));
   Serial.println(F("if something is failing you may want to debug, check sim900.h\r\n"));
 
@@ -85,7 +86,7 @@ void setup(){
   for (i = 0; i < RETRY_COUNT; i++)
   {
       Serial.println(F("sending HTTP GET request to http://m2msupport.net/m2msupport/test.php ..."));
-      if (gprs.httpSendGetRequest(F("http://m2msupport.net/m2msupport/test.php")) != -1)
+      if (gprs.httpSendGetRequest(F("http://m2msupport.net"), F("/m2msupport/test.php")) != -1)
           break;
   }
 

@@ -1202,7 +1202,7 @@ bool GPRS::httpTerminate(void)
     return sim900_check_with_cmd(F("AT+HTTPTERM\r\n"), "OK", CMD);
 }
 
-int16_t GPRS::httpSendGetRequest(const __FlashStringHelper* url)
+int16_t GPRS::httpSendGetRequest(const __FlashStringHelper* url, const __FlashStringHelper* path, uint16_t port)
 {
     char receiveBuffer[32];
     char httpStatusCode[4];
@@ -1214,7 +1214,18 @@ int16_t GPRS::httpSendGetRequest(const __FlashStringHelper* url)
 
     // 2 AT+HTTPPARA=\"URL\",\"<url>\"
     sim900_send_cmd(F("AT+HTTPPARA=\"URL\",\""));
+
     sim900_send_cmd(url);
+
+    if (port != HTTP_DEFAULT_PORT){
+        char strPort[6] = {'\0'};
+        ltoa(port, strPort, 10);
+        sim900_send_cmd(F(":"));
+        sim900_send_cmd(strPort);
+    }
+
+    sim900_send_cmd(path);
+
     if (sim900_check_with_cmd(F("\"\r\n"), "OK", CMD) == false)
         return -1;
 
