@@ -37,6 +37,8 @@
 /** GPRS class.
  *  used to realize GPRS communication
  */ 
+
+#define HTTP_DEFAULT_PORT 80u
  
 enum Protocol {
     CLOSED = 0,
@@ -421,23 +423,24 @@ public:
      */
     bool httpTerminate(void);
 
-    /** send passed string as HTTP GET request, requires openBearer() to be called beforehand:
+    /** send HTTP GET request, requires openBearer() to be called beforehand. The parameters
+     *  url and path will we concatenated together, if a port != 80 is specified it will be put in
+     *  between: <url>:<port><path>. The following commands are sent:
      *  1 AT+HTTPPARA=\"CID\",1
-     *  2 AT+HTTPPARA=\"URL\",\"<url>\"
+     *  2 AT+HTTPPARA=\"URL\",\"<url>:<port><path>\"
      *  3 AT+HTTPACTION=0
-     *  @param url: "http://'server':'tcpPort'/'path'"
-     *                "server": FQDN or IP-address
-     *                "tcpPort": default value is 80. Refer to
-     *                "IETF-RFC 2616".
-     *                "path": path of file or directory
-     *               e.g. "http://m2msupport.net/m2msupport/test.php"
-     *
+     *  @param url: URL or IP address including "http://", e.g.
+     *               e.g. "http://m2msupport.net"
+     *  @param port: http port, e.g. 8080
+     *  @param path: path to file or directory, e.g. "/m2msupport/test.php", use F("") to leave empty
      *  @returns amount of bytes the server returned (may also be 0), -1 indicates a
      *  an error in executing the AT* commands or if the webserver returned a status
      *  code != 200 (OK).
-     *  The data may be fetched using httpReadResponseData
+     *  The data may be fetched using httpReadResponseData()
      */
-    int16_t httpSendGetRequest(const __FlashStringHelper *url);
+    int16_t httpSendGetRequest(const __FlashStringHelper *url,
+            const __FlashStringHelper* path,
+            uint16_t port = HTTP_DEFAULT_PORT);
 
     /** read data from HTTP GET response
      *  1 AT+HTTPREAD
