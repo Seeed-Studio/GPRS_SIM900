@@ -468,6 +468,50 @@ public:
             const __FlashStringHelper* path,
             uint16_t port = HTTP_DEFAULT_PORT);
 
+    /** send HTTP GET request, requires openBearer() to be called beforehand. The parameters
+     *  url, pathPart1 and pathPart2 will we concatenated together. This allows to save RAM (by putting
+     *  url and pathPart2 in PROGMEM) and to modify the path during runtime if required. Example:
+     *  http:/testserver.ab/<modifiablePart>/test/path
+     *  Parameters to construct this request:
+     *  url = F("http:/testserver.ab")
+     *  pathPart1 = "/<http:/testserver.ab>"
+     *  pathPart2 = F("/test/path")
+     *
+     *  If a port != 80 is specified it will be put in between: <url>:<port><pathPart1><pathPart2>.
+     *
+     *  Furthermore this method allows to put parameters in a RAM-saving way into the GET request.
+     *  See the HTTP example sketch for how to use it.
+     *
+     *  The following commands are sent:
+     *  1 AT+HTTPPARA=\"CID\",1
+     *  2 AT+HTTPPARA=\"URL\",\"<url>:<port><path>\"
+     *  3 AT+HTTPACTION=0
+     *  @param url: URL or IP address including "http://", e.g.
+     *               e.g. "http://m2msupport.net"
+     *  @param pathPart1: part1 of path to file or directory, e.g. "/m2msupport/", use "" to leave empty.
+     *                    This MUST be \0-terminated
+     *  @param pathPart2: part 2 of path to file or directory, e.g. "test.php", use F("") to leave empty
+     *  @param queryParametersCount: amount of parameters to be added to the GET request, one parameter consists of
+     *                               a key value pair, may also be 0 to add 0 parameters
+     *  @param queryParameterKeys: the parameter keys, specified by an array of pointers located in PROGMEM
+     *                             pointing to strings located in PROGMEM, see HTTP example sketch
+     *  @param queryParamValues: the parameter values in an array containing C-style strings
+     *
+     *  @param port: http port, e.g. 8080
+     *
+     *  @returns amount of bytes the server returned (may also be 0), -1 indicates a
+     *  an error in executing the AT* commands or if the webserver returned a status
+     *  code != 200 (OK).
+     *  The data may be fetched using httpReadResponseData()
+     */
+    int16_t httpSendGetRequest(const __FlashStringHelper * url,
+                               const char * pathPart1,
+                               const __FlashStringHelper * pathPart2,
+                               uint8_t queryParametersCount,
+                               const __FlashStringHelper * const queryParameterKeys[],
+                               const char * const queryParamValues[],
+                               uint16_t port  = HTTP_DEFAULT_PORT);
+
     /** read data from HTTP GET response
      *  1 AT+HTTPREAD
      *  @param buffer: buffer where the data will be copied to (zero-terminated)

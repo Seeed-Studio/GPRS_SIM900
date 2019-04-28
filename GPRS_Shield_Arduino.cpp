@@ -1225,13 +1225,26 @@ bool GPRS::httpTerminate(void)
 
 int16_t GPRS::httpSendGetRequest(const __FlashStringHelper* url, const __FlashStringHelper* path, uint16_t port)
 {
+    return httpSendGetRequest(url, "", path, 0, NULL, NULL, port);
+}
+
+int16_t GPRS::httpSendGetRequest(const __FlashStringHelper * url,
+                                 const char * pathPart1,
+                                 const __FlashStringHelper * pathPart2,
+                                 uint8_t queryParametersCount,
+                                 const __FlashStringHelper * const queryParameterKeys[],
+                                 const char * const queryParamValues[],
+                                 uint16_t port)
+{
     char receiveBuffer[32];
     char httpStatusCode[4];
     char * commaPtr = NULL;
+    const __FlashStringHelper * tempParamKey;
 
     // 1 AT+HTTPPARA=\"CID\",1
-    if (sim900_check_with_cmd(F("AT+HTTPPARA=\"CID\",1\r\n"), "OK", CMD) == false)
+    if (sim900_check_with_cmd(F("AT+HTTPPARA=\"CID\",1\r\n"), "OK", CMD) == false){
         return -1;
+    }
 
     // 2 AT+HTTPPARA=\"URL\",\"<url>\"
     sim900_send_cmd(F("AT+HTTPPARA=\"URL\",\""));
@@ -1245,7 +1258,25 @@ int16_t GPRS::httpSendGetRequest(const __FlashStringHelper* url, const __FlashSt
         sim900_send_cmd(strPort);
     }
 
-    sim900_send_cmd(path);
+    sim900_send_cmd(pathPart1);
+    sim900_send_cmd(pathPart2);
+
+    for (int i = 0; i < queryParametersCount; i++)
+    {
+        // first parameter
+        if (i == 0)
+            sim900_send_cmd("?");
+        else
+            sim900_send_cmd("&");
+
+        // copies the pointers to the strings from progmem to RAM
+        // got this progmem magic from http://www.gammon.com.au/progmem
+        tempParamKey = (const __FlashStringHelper *)pgm_read_word(&queryParameterKeys[i]);
+
+        sim900_send_cmd(tempParamKey);
+        sim900_send_cmd("=");
+        sim900_send_cmd(queryParamValues[i]);
+    }
 
     if (sim900_check_with_cmd(F("\"\r\n"), "OK", CMD) == false)
         return -1;
