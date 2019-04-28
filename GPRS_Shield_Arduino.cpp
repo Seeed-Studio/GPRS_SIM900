@@ -508,7 +508,7 @@ bool GPRS::getDateTime(char *buffer)
 	sim900_flush_serial();
     sim900_send_cmd(F("AT+CCLK?\r"));
     sim900_clean_buffer(gprsBuffer,50);
-    sim900_read_buffer(gprsBuffer,50,DEFAULT_TIMEOUT);
+    sim900_read_string_until(gprsBuffer, sizeof(gprsBuffer), "OK\r\n");
     if(NULL != ( s = strstr(gprsBuffer,"+CCLK:"))) {
         s = strstr((char *)(s),"\"");
         s = s + 1;  //We are in the first phone number character 
@@ -1190,6 +1190,27 @@ bool GPRS::closeBearer(void)
 {
     //TODO maybe also call queryBearer() here and check if it really was closed (as in openBearer)
     return sim900_check_with_cmd(F("AT+SAPBR=0,1\r\n"),"OK\r\n", CMD);
+}
+
+bool GPRS::ntpSyncDateTime(int8_t timezone)
+{
+    // e.g. "-105\0", this is not a valid value to pass to the SIM module, but we need to make sure not
+    // to cross boundaries of the char array
+    char timezoneString[5] = {'\0'};
+
+    if (sim900_check_with_cmd(F("AT+CNTPCID=1\r\n"), "OK\r\n", CMD) == false)
+        return false;
+
+    sim900_send_cmd(F("AT+CNTP=\"pool.ntp.org\","));
+
+    itoa(timezone, timezoneString, 10);
+
+    sim900_send_cmd(timezoneString);
+
+    if (sim900_check_with_cmd(F("\r\n"), "OK\r\n", CMD) == false)
+        return false;
+
+    return sim900_check_with_cmd(F("AT+CNTP\r\n"), "+CNTP: 1", CMD);
 }
 
 bool GPRS::httpInitialize(void)

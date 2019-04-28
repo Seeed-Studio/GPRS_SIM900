@@ -393,8 +393,9 @@ public:
     bool getLocation(const __FlashStringHelper *apn, float *longitude, float *latitude);
 
 //////////////////////////////////////////////////////
-/// HTTP
+/// HTTP + NTP
 /// the implementation is based on information from SIM900_AT Command Manual_ V1.03
+/// and SIM800 Series_NTP_Application+Note_V1.01.pdf for NTP
 //////////////////////////////////////////////////////
     /** opens bearer: set parameters, and open it, use closeBearer() to close again
      *  1 AT+SAPBR=3,1,"Contype","GPRS"
@@ -412,6 +413,31 @@ public:
      *  @returns true if successful, false if there was a timeout
      */
     bool closeBearer(void);
+
+    /** !!!SIM800* only, see Note2 in this comment!!!
+     *  synchronizes the SIM module's RTC using pool.ntp.org, requires openBearer()
+     *  to be called beforehand. The actual time can be retrieved using getDateTime().
+     *
+     *  Sends the following commands:
+     *  1 AT+CNTPCID=1
+     *  2 AT+CNTP=\"pool.ntp.org\",<timezone>
+     *  3 AT+CNTP
+     *  @param timezone: timezone is specified in quarters, e.g. 0 = UTC, 8 = +2:00, -38 = -9:30
+     *  according to SIM800 Series_NTP_Application Note_V1.01 the valid range is from -47 to 48.
+     *  The range is not checked but instead directly passed to the module.
+     *
+     *  @returns true if successful, false if there was something wrong
+     *
+     *  Note1: I'm not sure how this works together with automatic time syncing via
+     *  network operator (AT+CLTS=1). Precautionary I set AT+CLTS=0. See getDateTime() for information regarding this.
+     *  Note2: SIM900 uses another interface, see SIM900 NTP AT Command Manual_V1.00.pdf
+     *  It uses these commands:
+     *  1 AT+CNTP="pool.ntp.org ",8,1,2
+     *  2 AT+CNTP (which then directly returns the time)
+     *  Maybe the device can be queried if it is SIM800* or SIM900*. Then the second implementation can be added
+     *  as well.
+     */
+    bool ntpSyncDateTime(int8_t timezone);
 
     /** initializes HTTP service by issuing AT+HTTPINIT command
      *  @returns true if successful, false if an error occurred
