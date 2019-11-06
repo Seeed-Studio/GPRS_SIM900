@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include "GPRS_Shield_Arduino.h"
 
-GPRS* GPRS::inst;
+GPRS* GPRS::inst = NULL;
 
 GPRS::GPRS(uint8_t tx, uint8_t rx, uint32_t baudRate):gprsSerial(tx,rx)
 {
