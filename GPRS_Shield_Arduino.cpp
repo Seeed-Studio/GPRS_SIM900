@@ -56,6 +56,11 @@ bool GPRS::init(void)
     }
     //delay(500);	It is not necessary, as we have time before next command
     
+    // set New Message Indicator
+    if(!sim900_check_with_cmd(F("AT+CNMI=1,1,0,0,0\r\n"), "OK\r\n", CMD)) { // Set message mode to ASCII
+        return false;
+    }
+	
     if(!checkSIMStatus()) {
 		return false;
     }
