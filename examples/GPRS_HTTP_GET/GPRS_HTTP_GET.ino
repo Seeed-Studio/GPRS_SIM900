@@ -22,22 +22,19 @@ static const char path[] PROGMEM = {"/get"};
 static const char paramKey1[] PROGMEM = {"foo1"};
 static const char paramKey2[] PROGMEM = {"foo2"};
 
-const __FlashStringHelper* const queryParamKeys[QUERY_PARAM_COUNT] PROGMEM =
-{
+const __FlashStringHelper* const queryParamKeys[QUERY_PARAM_COUNT] PROGMEM = {
     (const __FlashStringHelper*)paramKey1,
     (const __FlashStringHelper*)paramKey2,
 };
 
 //don't waste any RAM, pack it!
-typedef struct __attribute__((__packed__))
-{
+typedef struct __attribute__((__packed__)) {
     char paramValue1[5];
     char paramValue2[5];
 
-    char * const array[QUERY_PARAM_COUNT] =
-    {
-            paramValue1,
-            paramValue2
+    char* const array[QUERY_PARAM_COUNT] = {
+        paramValue1,
+        paramValue2
     };
 } queryParamValues_t;
 
@@ -50,150 +47,134 @@ const char apn[] PROGMEM = {"internet.telekom"};
 
 char responseBuffer[512];
 
-void setup(){
-  int i;
+void setup() {
+    int i;
 
-  Serial.begin(9600);
+    Serial.begin(9600);
 
 
-  Serial.println(F("Start HTTP demonstration, yeah!"));
-  Serial.println(F("if something is failing you may want to debug, check sim900.h\r\n"));
+    Serial.println(F("Start HTTP demonstration, yeah!"));
+    Serial.println(F("if something is failing you may want to debug, check sim900.h\r\n"));
 
-  for (i = 0; i < RETRY_COUNT; i++)
-  {
-      Serial.println(F("Initializing ..."));
-      if (gprs.init() != false)
-          break;
+    for (i = 0; i < RETRY_COUNT; i++) {
+        Serial.println(F("Initializing ..."));
+        if (gprs.init() != false) {
+            break;
+        }
 
-      delay(500);
-  }
+        delay(500);
+    }
 
-  if (i < RETRY_COUNT)
-      Serial.println(F("OK"));
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    if (i < RETRY_COUNT) {
+        Serial.println(F("OK"));
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  for (i = 0; i < RETRY_COUNT; i++)
-  {
-      Serial.println(F("Check if network is registered..."));
-      if (gprs.isNetworkRegistered() != false)
-          break;
+    for (i = 0; i < RETRY_COUNT; i++) {
+        Serial.println(F("Check if network is registered..."));
+        if (gprs.isNetworkRegistered() != false) {
+            break;
+        }
 
-      delay(1000);
-  }
+        delay(1000);
+    }
 
-  if (i < RETRY_COUNT)
-      Serial.println(F("OK"));
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    if (i < RETRY_COUNT) {
+        Serial.println(F("OK"));
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  Serial.println(F("opening bearer ..."));
-  if (gprs.openBearer((const __FlashStringHelper *)apn) != false)
-  {
-      Serial.print(F("OK, ip address is: "));
-      Serial.println(gprs.getIPAddress());
-  }
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    Serial.println(F("opening bearer ..."));
+    if (gprs.openBearer((const __FlashStringHelper*)apn) != false) {
+        Serial.print(F("OK, ip address is: "));
+        Serial.println(gprs.getIPAddress());
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  Serial.println(F("initializing HTTP service ..."));
-  if (gprs.httpInitialize() != false)
-      Serial.println(F("OK"));
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    Serial.println(F("initializing HTTP service ..."));
+    if (gprs.httpInitialize() != false) {
+        Serial.println(F("OK"));
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  for (i = 0; i < RETRY_COUNT; i++)
-  {
-      Serial.println(F("sending compile time constructed HTTP GET request to http://m2msupport.net/m2msupport/test.php ..."));
-      if (gprs.httpSendGetRequest(F("http://m2msupport.net"), F("/m2msupport/test.php")) != -1)
-          break;
-  }
+    for (i = 0; i < RETRY_COUNT; i++) {
+        Serial.println(F("sending compile time constructed HTTP GET request to http://m2msupport.net/m2msupport/test.php ..."));
+        if (gprs.httpSendGetRequest(F("http://m2msupport.net"), F("/m2msupport/test.php")) != -1) {
+            break;
+        }
+    }
 
-  if (i < RETRY_COUNT)
-      Serial.println(F("OK"));
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    if (i < RETRY_COUNT) {
+        Serial.println(F("OK"));
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  Serial.println(F("fetching HTTP GET response ..."));
-  if (gprs.httpReadResponseData(responseBuffer, sizeof(responseBuffer)) != false)
-  {
-      Serial.println(F("OK, received data:"));
-      Serial.println(responseBuffer);
-  }
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    Serial.println(F("fetching HTTP GET response ..."));
+    if (gprs.httpReadResponseData(responseBuffer, sizeof(responseBuffer)) != false) {
+        Serial.println(F("OK, received data:"));
+        Serial.println(responseBuffer);
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  strcpy (queryParamValues.paramValue1, "bar1");
-  strcpy (queryParamValues.paramValue2, "bar2");
-  for (i = 0; i < RETRY_COUNT; i++)
-  {
-      Serial.println(F("sending runtime constructed HTTP GET request http://postman-echo.com/get?foo1=bar1&foo2=bar2..."));
-      if (gprs.httpSendGetRequest((const __FlashStringHelper *)url,
-              "",
-              (const __FlashStringHelper *)path,
-              QUERY_PARAM_COUNT,
-              queryParamKeys,
-              queryParamValues.array) != -1)
-          break;
-  }
+    strcpy(queryParamValues.paramValue1, "bar1");
+    strcpy(queryParamValues.paramValue2, "bar2");
+    for (i = 0; i < RETRY_COUNT; i++) {
+        Serial.println(F("sending runtime constructed HTTP GET request http://postman-echo.com/get?foo1=bar1&foo2=bar2..."));
+        if (gprs.httpSendGetRequest((const __FlashStringHelper*)url,
+                                    "",
+                                    (const __FlashStringHelper*)path,
+                                    QUERY_PARAM_COUNT,
+                                    queryParamKeys,
+                                    queryParamValues.array) != -1) {
+            break;
+        }
+    }
 
-  if (i < RETRY_COUNT)
-      Serial.println(F("OK"));
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    if (i < RETRY_COUNT) {
+        Serial.println(F("OK"));
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  Serial.println(F("fetching HTTP GET response ..."));
-  if (gprs.httpReadResponseData(responseBuffer, sizeof(responseBuffer)) != false)
-  {
-      Serial.println(F("OK, received data:"));
-      Serial.println(responseBuffer);
-  }
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    Serial.println(F("fetching HTTP GET response ..."));
+    if (gprs.httpReadResponseData(responseBuffer, sizeof(responseBuffer)) != false) {
+        Serial.println(F("OK, received data:"));
+        Serial.println(responseBuffer);
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  Serial.println(F("terminating HTTP service ..."));
-  if (gprs.httpTerminate() != false)
-     Serial.println(F("OK"));
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    Serial.println(F("terminating HTTP service ..."));
+    if (gprs.httpTerminate() != false) {
+        Serial.println(F("OK"));
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 
-  Serial.println(F("closing bearer ..."));
-  if (gprs.closeBearer() != false)
-      Serial.println(F("OK"));
-  else
-  {
-      Serial.println(F("failed"));
-      return;
-  }
+    Serial.println(F("closing bearer ..."));
+    if (gprs.closeBearer() != false) {
+        Serial.println(F("OK"));
+    } else {
+        Serial.println(F("failed"));
+        return;
+    }
 }
 
-void loop(){
+void loop() {
 
 }

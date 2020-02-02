@@ -12,58 +12,57 @@
 char http_cmd[] = "GET /media/uploads/mbed_official/hello.txt HTTP/1.0\r\n\r\n";
 char buffer[512];
 GPRS gprs(PIN_TX, PIN_RX, BAUDRATE);
-void setup(){
-  gprs.checkPowerUp();
-  Serial.begin(9600);
-  Serial.print("Start TCP demostration...\r\n");
+void setup() {
+    gprs.checkPowerUp();
+    Serial.begin(9600);
+    Serial.print("Start TCP demostration...\r\n");
 
-  // use DHCP
-  while(!gprs.init()) {
-      delay(1000);
-      Serial.print("Initializing...\r\n");
-  }
-  
-  while(!gprs.isNetworkRegistered())
-  {
-    delay(1000);
-    Serial.println("Network has not registered yet!");
-  }
+    // use DHCP
+    while (!gprs.init()) {
+        delay(1000);
+        Serial.print("Initializing...\r\n");
+    }
 
-  delay(3000);    
-  // attempt DHCP
-  while(!gprs.join(F("cmnet"))) {
-      Serial.println("gprs join network error");
-      delay(2000);
-  }
+    while (!gprs.isNetworkRegistered()) {
+        delay(1000);
+        Serial.println("Network has not registered yet!");
+    }
 
-  // successful DHCP
-  Serial.print("IP Address is ");
-  Serial.println(gprs.getIPAddress());
+    delay(3000);
+    // attempt DHCP
+    while (!gprs.join(F("cmnet"))) {
+        Serial.println("gprs join network error");
+        delay(2000);
+    }
 
-  if(!gprs.connect(TCP,"mbed.org", 80)) {
-      Serial.println("connect error");
-  }else{
-      Serial.println("connect mbed.org success");
-  }
+    // successful DHCP
+    Serial.print("IP Address is ");
+    Serial.println(gprs.getIPAddress());
 
-  Serial.println("waiting to fetch...");
-  gprs.send(http_cmd, sizeof(http_cmd)-1);
-  while (true) {
-      int ret = gprs.recv(buffer, sizeof(buffer)-1);
-      if (ret <= 0){
-          Serial.println("fetch over...");
-          break; 
-      }
-      buffer[ret] = '\0';
-      Serial.print("Recv: ");
-      Serial.print(ret);
-      Serial.print(" bytes: ");
-      Serial.println(buffer);
-  }
-  gprs.close();
-  gprs.disconnect();
+    if (!gprs.connect(TCP, "mbed.org", 80)) {
+        Serial.println("connect error");
+    } else {
+        Serial.println("connect mbed.org success");
+    }
+
+    Serial.println("waiting to fetch...");
+    gprs.send(http_cmd, sizeof(http_cmd) - 1);
+    while (true) {
+        int ret = gprs.recv(buffer, sizeof(buffer) - 1);
+        if (ret <= 0) {
+            Serial.println("fetch over...");
+            break;
+        }
+        buffer[ret] = '\0';
+        Serial.print("Recv: ");
+        Serial.print(ret);
+        Serial.print(" bytes: ");
+        Serial.println(buffer);
+    }
+    gprs.close();
+    gprs.disconnect();
 }
 
-void loop(){
+void loop() {
 
 }
