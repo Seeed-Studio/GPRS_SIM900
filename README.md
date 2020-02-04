@@ -1,4 +1,4 @@
-GPRS Shield and Cheap SIM800L PCB BOARDS
+GPRS Shield and Cheap SIM800L PCB BOARDS  [![Build Status](https://travis-ci.com/Seeed-Studio/GPRS_SIM900.svg?branch=master)](https://travis-ci.com/Seeed-Studio/GPRS_SIM900)
 ===
 
 Only two special functions are different for SIM900 Shield or SIM800L PCB boards:
