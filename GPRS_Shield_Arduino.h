@@ -155,8 +155,10 @@ class GPRS {
 
     /** auto answer if coming a call
         @returns
+            true on success
+            false on error
     */
-    void answer(void);
+    bool answer(void);
 
     /** hang up if coming a call
         @returns

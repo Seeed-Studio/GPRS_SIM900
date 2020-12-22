@@ -354,8 +354,8 @@ bool GPRS::callUp(char* number) {
     return true;
 }
 
-void GPRS::answer(void) {
-    sim900_send_cmd(F("ATA\r\n"));  //TO CHECK: ATA doesnt return "OK" ????
+bool GPRS::answer(void) {
+    return sim900_check_with_cmd(F("ATA\r\n"), "OK\r\n", CMD);
 }
 
 bool GPRS::hangup(void) {
